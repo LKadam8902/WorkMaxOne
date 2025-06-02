@@ -1,10 +1,15 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-home', // Or whatever your selector is
+  selector: 'app-landing-page',
   templateUrl: './landing-page.component.html',
-  styleUrls: ['./landing-page.component.css'] // Make sure this path is correct
+  styleUrls: ['./landing-page.component.css']
 })
 export class LandingPageComponent {
-  // Your component logic
+  constructor(private router: Router) {}
+
+  navigateToCreateAccount() {
+    this.router.navigate(['/create-account']);
+  }
 }
