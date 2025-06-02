@@ -1,0 +1,147 @@
+/* Overall Container */
+.main-container {
+  min-height: 100vh;
+  background-color: #dbeafe; /* A light blue color from screenshot */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: sans-serif; /* Fallback font */
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem; /* px-8 py-4 */
+  background-color: white;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  margin-right: 0.5rem; /* space-x-2 for items after logo */
+}
+
+.navbar-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1.5rem; /* space-x-6 */
+  color: #4a5568; /* gray-700 */
+  font-weight: 500; /* font-medium */
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Hero Section */
+.hero-section {
+  display: flex;
+  flex-direction: column; /* Default for mobile */
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1; /* Makes it take available space */
+  padding: 1rem 2rem; /* Initial padding */
+}
+
+@media (min-width: 768px) { /* md breakpoint */
+  .hero-section {
+    flex-direction: row; /* Row for desktop */
+    padding: 0; /* Remove padding if handled by children */
+  }
+}
+
+.hero-image-placeholder {
+  width: 100%; /* Full width on mobile */
+  height: 24rem; /* h-96 */
+  background-color: #bfdbfe; /* blue-200 */
+  border-radius: 0.5rem; /* rounded-lg */
+  margin-bottom: 2.5rem; /* Spacing below image on mobile */
+  display: flex; /* For centering content within */
+  justify-content: flex-end; /* justify-end */
+  align-items: center;
+  padding-right: 2rem; /* p-8, adjusted for right side */
+}
+
+@media (min-width: 768px) { /* md breakpoint */
+  .hero-image-placeholder {
+    width: 450px; /* Specific width */
+    height: 350px; /* Specific height */
+    margin-right: 2rem; /* mr-8 */
+    margin-bottom: 0; /* No bottom margin on desktop */
+    padding-right: 0; /* Remove padding on desktop */
+  }
+}
+
+.hero-content {
+  width: 100%; /* Full width on mobile */
+  margin-top: 2.5rem; /* mt-10 */
+  padding: 2rem 1rem; /* p-8 px-4 */
+  background-color: #dbeafe; /* The same light blue background */
+  border-radius: 0.5rem; /* rounded-lg */
+}
+
+@media (min-width: 768px) { /* md breakpoint */
+  .hero-content {
+    width: 50%; /* md:w-1/2 */
+    margin-top: 0; /* md:mt-0 */
+    padding-right: 4rem; /* md:pr-16 */
+    padding-left: 0; /* md:pl-0 */
+  }
+}
+
+.hero-title {
+  font-size: 2.5rem; /* text-4xl */
+  font-weight: bold;
+  color: #1a202c; /* gray-900 */
+  line-height: 1.2; /* leading-tight */
+  margin: 0; /* Reset default h1 margin */
+}
+
+@media (min-width: 1024px) { /* lg breakpoint */
+  .hero-title {
+    font-size: 3rem; /* lg:text-5xl */
+  }
+}
+
+.hero-highlight-text {
+  color: black; /* text-black */
+}
+
+.hero-description {
+  margin-top: 1rem; /* mt-4 */
+  color: #4a5568; /* gray-700 */
+  max-width: 28rem; /* max-w-md */
+  font-size: 1.125rem; /* text-lg */
+}
+
+.create-account-button {
+  margin-top: 1.5rem; /* mt-6 */
+  background-color: #f87171; /* red-400 */
+  color: white;
+  font-weight: 600; /* font-semibold */
+  padding: 0.5rem 1.5rem; /* py-2 px-6 */
+  border-radius: 9999px; /* rounded-full */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out; /* transition duration-300 ease-in-out */
+}
+
+.create-account-button:hover {
+  background-color: #ef4444; /* hover:bg-red-500 */
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 1rem 0; /* py-4 */
+  font-size: 0.875rem; /* text-sm */
+  color: #4a5568; /* gray-600 */
+  background-color: white;
+}
