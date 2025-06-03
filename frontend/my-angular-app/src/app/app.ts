@@ -9,6 +9,7 @@ import { routes } from './app.routes';
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
+
 export class App {
   protected title = 'my-angular-app';
 }
