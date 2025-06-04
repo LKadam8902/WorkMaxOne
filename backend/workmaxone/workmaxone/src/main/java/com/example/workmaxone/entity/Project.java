@@ -22,15 +22,17 @@ public class Project {
     @Column(name = "taskId")
     private List<Task> taskId;
 
-    private List<String> techStack;
+    //private List<String> techStack;
 
     //private List<Team> teamMembers;
+
+    public Project(){
+    }
 
     public Project(String projectName, int noOfMembers, List<Task> taskList, List<String> techStack) {
         this.projectName = projectName;
         this.noOfMembers = noOfMembers;
         this.taskId = taskList;
-        this.techStack = techStack;
     }
 
     public int getProjectId() {
@@ -65,11 +67,4 @@ public class Project {
         this.taskId = taskList;
     }
 
-    public List<String> getTechStack() {
-        return techStack;
-    }
-
-    public void setTechStack(List<String> techStack) {
-        this.techStack = techStack;
-    }
 }

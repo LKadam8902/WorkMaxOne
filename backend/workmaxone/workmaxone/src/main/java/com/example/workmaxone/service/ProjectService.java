@@ -18,4 +18,14 @@ public class ProjectService {
     public Project getProjectById(int projectId){
         return projectRepository.findById(projectId);
     }
+
+    public void saveProject(String projectName){
+        Project project=new Project();
+        project.setProjectName(projectName);
+        projectRepository.save(project);
+    }
+
+
+
+
 }
