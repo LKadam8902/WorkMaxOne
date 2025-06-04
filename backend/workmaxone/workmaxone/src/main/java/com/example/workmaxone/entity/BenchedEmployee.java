@@ -2,7 +2,12 @@ package com.example.workmaxone.entity;
 
 import java.util.List;
 
+import jakarta.persistence.*;
+
+@Entity
+@PrimaryKeyJoinColumn(name = "employee_id")
 public class BenchedEmployee  extends Employee{
+
 
     public BenchedEmployee(String employeeName, String email, String password, String profileUrl) {
         super(employeeName, email, password, profileUrl);

@@ -1,8 +1,14 @@
 package com.example.workmaxone.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 
 @Entity
+@PrimaryKeyJoinColumn(name = "employee_id")
 public class TeamLead extends Employee {
 
     public TeamLead(String employeeName, String email, String password, String profileUrl) {
@@ -10,7 +16,7 @@ public class TeamLead extends Employee {
         //TODO Auto-generated constructor stub
     }
 
-    
+    @OneToOne
     private Project project;
 
 

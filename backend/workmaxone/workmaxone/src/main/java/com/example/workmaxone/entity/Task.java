@@ -16,9 +16,6 @@ public class Task {
     private List<String> skillSet;
 
 
-    @ManyToOne
-    private Task task;
-
     private Boolean isAssigned;
 
     private int extraMemberReq;
