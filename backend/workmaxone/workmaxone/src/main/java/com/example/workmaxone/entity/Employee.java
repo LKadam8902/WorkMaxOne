@@ -10,7 +10,7 @@ import jakarta.persistence.InheritanceType;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-abstract class Employee {
+public abstract class Employee {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,6 +24,10 @@ abstract class Employee {
 
     private String profileUrl;
 
+
+    public int getEmployeeId(){
+        return employee_id;
+    }
     
 
     public Employee(String employeeName, String email, String password, String profileUrl) {
@@ -51,6 +55,10 @@ abstract class Employee {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getpassword(){
+        return password;
     }
 
     public String getProfileUrl() {
