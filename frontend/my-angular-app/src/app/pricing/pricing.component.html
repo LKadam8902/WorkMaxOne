@@ -1,0 +1,23 @@
+<div class="pricing-container">
+    <div class="header">
+      <img src="assets/your-logo.png" alt="Logo" class="logo"> <h1 class="plan-title">Plan Available</h1>
+    </div>
+  
+    <div class="plans-wrapper">
+      <div class="plan-card monthly-plan">
+        <h2 class="plan-price">{{ monthlyPlan.price }}</h2>
+        <ul class="features-list">
+          <li *ngFor="let feature of monthlyPlan.features">{{ feature }}</li>
+        </ul>
+        <button class="continue-button" (click)="onContinue('monthly')">Continue</button>
+      </div>
+  
+      <div class="plan-card yearly-plan">
+        <h2 class="plan-price">{{ yearlyPlan.price }}</h2>
+        <ul class="features-list">
+          <li *ngFor="let feature of yearlyPlan.features">{{ feature }}</li>
+        </ul>
+        <button class="continue-button" (click)="onContinue('yearly')">Continue</button>
+      </div>
+    </div>
+  </div>
