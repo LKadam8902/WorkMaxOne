@@ -4,6 +4,7 @@ import com.example.workmaxone.entity.enums.Status;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Task {
@@ -19,6 +20,12 @@ public class Task {
     private Integer  assignedTo;
 
     private Integer assignedBy;
+
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    private Optional<Project> project;
 
     private String status;
 
@@ -81,6 +88,14 @@ public class Task {
 
     public void setAssignedBy(Integer assignedBy) {
         this.assignedBy = assignedBy;
+    }
+
+    public Optional<Project> getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = Optional.ofNullable(project);
     }
 
 }
