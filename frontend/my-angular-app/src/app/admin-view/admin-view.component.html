@@ -1,0 +1,44 @@
+<div class="admin-view-container">
+    <div class="sidebar">
+      <div class="logo">
+        <img src="your-logo-path.png" alt="Logo">
+      </div>
+      <div class="menu-icon">
+        &#9776; </div>
+      </div>
+  
+    <div class="main-content">
+      <div class="header-bar">
+        <div class="user-profile-icon">
+          <img src="https://via.placeholder.com/24" alt="User" class="profile-placeholder">
+          </div>
+      </div>
+  
+      <div class="section">
+        <h2>Section 1</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>userId</th>
+                <th>username</th>
+                <th>user email Id</th>
+                <th>user role</th>
+                <th>Permit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of users">
+                <td>{{ user.userId }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.userEmailId }}</td>
+                <td>{{ user.userRole }}</td>
+                <!-- <td><input type="checkbox" [(ngModel)]="user.permit"></td> -->
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+  
+      </div>
+  </div>
