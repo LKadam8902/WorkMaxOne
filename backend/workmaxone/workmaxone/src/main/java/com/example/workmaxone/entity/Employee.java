@@ -7,7 +7,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 
-
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Employee {
@@ -24,11 +23,19 @@ public abstract class Employee {
 
     private String profileUrl;
 
+    private boolean isAprooved;
 
-    public int getEmployeeId(){
+    public boolean isAprooved() {
+        return isAprooved;
+    }
+
+    public void setAprooved(boolean isAprooved) {
+        this.isAprooved = isAprooved;
+    }
+
+    public int getEmployeeId() {
         return employee_id;
     }
-    
 
     public Employee(String employeeName, String email, String password, String profileUrl) {
         this.employeeName = employeeName;
@@ -57,7 +64,7 @@ public abstract class Employee {
         this.password = password;
     }
 
-    public String getpassword(){
+    public String getpassword() {
         return password;
     }
 
@@ -68,8 +75,5 @@ public abstract class Employee {
     public void setProfileUrl(String profileUrl) {
         this.profileUrl = profileUrl;
     }
-
-
-    
 
 }

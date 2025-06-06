@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,42 +17,91 @@ import com.example.workmaxone.DTO.LoginRequest;
 import com.example.workmaxone.DTO.LoginResponse;
 // import com.example.workmaxone.entity.BenchedEmployee;
 import com.example.workmaxone.entity.Employee;
+import com.example.workmaxone.entity.RoleEnum;
 // import com.example.workmaxone.entity.TeamLead;
 import com.example.workmaxone.service.EmployeeRESTService;
+import com.example.workmaxone.service.JWTservice;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import io.jsonwebtoken.security.SignatureException;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/auth")
 public class AuthController {
 
-    @Autowired
-    private EmployeeRESTService employeeRESTService;
+        @Autowired
+        private EmployeeRESTService employeeRESTService;
 
-    @PostMapping("benchedEmployee/login")
-    public ResponseEntity<LoginResponse> loginBE(@RequestBody LoginRequest loginRequest) {
+        @Autowired
+        private JWTservice jwtService;
 
-        Optional<Employee> maybeAuthenticatedCustomer = employeeRESTService
-                .getAuthenticatedBenchedEmployee(loginRequest.username(), loginRequest.password());
+        @PostMapping("benchedEmployee/login")
+        public ResponseEntity<LoginResponse> loginBE(@RequestBody LoginRequest loginRequest,
+                        HttpServletResponse response) {
 
-        if (maybeAuthenticatedCustomer.isEmpty()) {
-            return new ResponseEntity<LoginResponse>(new LoginResponse("Invalid username or password"),
-                    HttpStatus.FORBIDDEN);
+                Optional<Employee> maybeAuthenticatedBE = employeeRESTService
+                                .getAuthenticatedBenchedEmployee(loginRequest.username(), loginRequest.password());
+
+                if (maybeAuthenticatedBE.isEmpty()) {
+                        return new ResponseEntity<LoginResponse>(new LoginResponse("", "Invalid username or password"),
+                                        HttpStatus.FORBIDDEN);
+                }
+                var role = RoleEnum.BENCHED_EMPLOYEE;
+                var accessToken = jwtService.createAccessToken(maybeAuthenticatedBE.get(), role.name());
+                var refreshToken = jwtService.createRefreshToken(maybeAuthenticatedBE.get(), role.name());
+                // also set the refresh token in the cookie
+                Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+                refreshTokenCookie.setHttpOnly(true);
+                response.addCookie(refreshTokenCookie);
+                return new ResponseEntity<LoginResponse>(
+                                new LoginResponse(accessToken, "Successful login, use token for further comms"),
+                                HttpStatus.CREATED);
         }
-        return new ResponseEntity<LoginResponse>(new LoginResponse("Successfull Login"), HttpStatus.CREATED);
 
-    }
+        @PostMapping("teamLead/login")
+        public ResponseEntity<LoginResponse> loginTL(@RequestBody LoginRequest loginRequest,
+                        HttpServletResponse response) {
 
-    @PostMapping("teamLead/login")
-    public ResponseEntity<LoginResponse> loginTL(@RequestBody LoginRequest loginRequest) {
+                Optional<Employee> maybeAuthenticatedTL = employeeRESTService
+                                .getAuthenticatedTeamLead(loginRequest.username(), loginRequest.password());
 
-        Optional<Employee> maybeAuthenticatedCustomer = employeeRESTService
-                .getAuthenticatedTeamLead(loginRequest.username(), loginRequest.password());
+                if (maybeAuthenticatedTL.isEmpty()) {
+                        return new ResponseEntity<LoginResponse>(new LoginResponse("", "Invalid username or password"),
+                                        HttpStatus.FORBIDDEN);
+                }
+                var role = RoleEnum.TEAM_LEAD;
+                var accessToken = jwtService.createAccessToken(maybeAuthenticatedTL.get(), role.name());
+                var refreshToken = jwtService.createRefreshToken(maybeAuthenticatedTL.get(), role.name());
 
-        if (maybeAuthenticatedCustomer.isEmpty()) {
-            return new ResponseEntity<LoginResponse>(new LoginResponse("Invalid username or password"),
-                    HttpStatus.FORBIDDEN);
+                Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+                refreshTokenCookie.setHttpOnly(true);
+                response.addCookie(refreshTokenCookie);
+                return new ResponseEntity<LoginResponse>(
+                                new LoginResponse(accessToken, "Successful login, use token for further comms"),
+                                HttpStatus.CREATED);
+
         }
 
-        return new ResponseEntity<LoginResponse>(new LoginResponse("Successfull Login"), HttpStatus.CREATED);
+        @PostMapping("/refresh")
+        public ResponseEntity<LoginResponse> refresh(@CookieValue("refreshToken") String refreshToken,
+                        HttpServletResponse response) {
+                try {
+                        var newAccessToken = jwtService.createNewAccessToken(refreshToken);
+                        return new ResponseEntity<LoginResponse>(
+                                        new LoginResponse(newAccessToken,
+                                                        "Successful token refresh, use this token for further comms"),
+                                        HttpStatus.CREATED);
+                } catch (SignatureException e) {
+                        e.printStackTrace();
+                        Cookie invalidatedRefreshToken = new Cookie("refreshToken", null);
+                        invalidatedRefreshToken.setHttpOnly(true);
+                        invalidatedRefreshToken.setMaxAge(0);
+                        response.addCookie(invalidatedRefreshToken);
 
-    }
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("Token-Status", "Invalid")
+                                        .body(new LoginResponse("", "invalid Refresh Token, unauthorized"));
+                }
+        }
 }
