@@ -1,5 +1,8 @@
 package com.example.workmaxone;
 
+import com.example.workmaxone.service.AdminService;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -9,10 +12,24 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @SpringBootApplication
 public class WorkmaxoneApplication {
 
+	@Autowired
+	private AdminService adminService;
+
+
 	public static void main(String[] args) {
 		SpringApplication.run(WorkmaxoneApplication.class, args);
 	}
-		@Bean
+
+	@PostConstruct
+	public void init() {
+		try {
+			adminService.checkAdmin("${app.app.admin-email}","${app.admin-password}");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Bean
 	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {
 			@Override
