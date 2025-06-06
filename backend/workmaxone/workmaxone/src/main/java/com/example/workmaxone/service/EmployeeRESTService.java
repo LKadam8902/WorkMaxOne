@@ -3,6 +3,8 @@ package com.example.workmaxone.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.workmaxone.entity.BenchedEmployee;
@@ -23,13 +25,19 @@ public class EmployeeRESTService {
     @Autowired
     private TeamLeadRepo teamLeadRepo;
 
+    private PasswordEncoder encoder;
+
+    public void EmployeeRestService(){
+        encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
     public Optional<Employee> getAuthenticatedBenchedEmployee(String username, String password) {
         var benchedEmpInDb = benchedEmployeeRepo.findByEmployeeName(username);
         if (benchedEmpInDb.isEmpty()) {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
         }
-        if (password == benchedEmpInDb.get().getpassword()) {
+        if (encoder.matches(password, benchedEmpInDb.get().getpassword())) {
             return benchedEmpInDb;
         } else {
             return Optional.empty();
@@ -42,20 +50,21 @@ public class EmployeeRESTService {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
         }
-        if (password == teamLeadInDb.get().getpassword()) {
+        if (encoder.matches(password, teamLeadInDb.get().getpassword())) {
             return teamLeadInDb;
         } else {
             return Optional.empty();
         }
     }
 
-    public Employee createBenchedEmployee(String employeeName, String email, String password ) {
-        var benchedEmp = new BenchedEmployee(employeeName,email,password,null);
+    public Employee createBenchedEmployee(String employeeName, String email, String password) {
+        var benchedEmp = new BenchedEmployee(employeeName, email, encoder.encode(password), null);
         return employeeRepo.save(benchedEmp);
     }
 
-    public Employee createTeamLead(String employeeName, String email, String password ) {
-        var teamLead = new TeamLead(employeeName,email,password,null);
+    public Employee createTeamLead(String employeeName, String email, String password) {
+        var teamLead = new TeamLead(employeeName, email, encoder.encode(password), null);
+
         return employeeRepo.save(teamLead);
     }
 
