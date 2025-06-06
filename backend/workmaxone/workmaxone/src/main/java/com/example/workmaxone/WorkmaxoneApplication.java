@@ -3,6 +3,7 @@ package com.example.workmaxone;
 import com.example.workmaxone.service.AdminService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -20,10 +21,17 @@ public class WorkmaxoneApplication {
 		SpringApplication.run(WorkmaxoneApplication.class, args);
 	}
 
+	@Value("${app.admin-email}")
+	private String username;
+
+	@Value("${app.admin-password}")
+	private String password;
+
 	@PostConstruct
 	public void init() {
 		try {
-			adminService.checkAdmin("${app.app.admin-email}","${app.admin-password}");
+
+			adminService.checkAdmin(username,password);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

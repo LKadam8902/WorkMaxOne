@@ -8,9 +8,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureAlgorithm;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.KeyPair;
 import java.sql.SQLDataException;
@@ -28,16 +30,19 @@ public class AdminService {
     private static final Integer ACCESS_EXPIRY_SECONDS = 15*60;
     private static final Integer REFERSH_EXPIRY_SECONDS = 7* 24 * 60 * 60;
 
-    //@Autowired
+
     private PasswordEncoder encoder;
 
-//    public AdminService() {
-//        encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-//    }
+    public AdminService() {
+       encoder= new BCryptPasswordEncoder();
+    }
 
     @Autowired
     private AdminRepository adminRepository;
 
+
+
+    @Transactional
     public void checkAdmin(String username,String password) throws Exception {
         try{
             List<Admin>adminInDb=adminRepository.findAll();
@@ -52,7 +57,7 @@ public class AdminService {
                 return ;
             }
         }catch(Exception e){
-            throw new AdminException(e.getMessage());
+            throw new AdminException("Error adding admin"+e.getMessage());
         }
     }
 
