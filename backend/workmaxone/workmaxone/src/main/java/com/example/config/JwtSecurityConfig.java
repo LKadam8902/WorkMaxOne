@@ -15,6 +15,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -34,7 +36,7 @@ public class JwtSecurityConfig {
     
     @Bean
     @Order(0)
-    public SecurityFilterChain filterchainIgnoreAuth(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChainIgnoreAuth(HttpSecurity http) throws Exception{
         http.securityMatcher("/auth/**,/error,/employee/**").authorizeHttpRequests((authorize)->authorize
         .requestMatchers("/auth/**,/error,/employee/**").permitAll()
         .anyRequest().authenticated())
@@ -103,5 +105,11 @@ public class JwtSecurityConfig {
         return src;
     }
 
-    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+
+
 }

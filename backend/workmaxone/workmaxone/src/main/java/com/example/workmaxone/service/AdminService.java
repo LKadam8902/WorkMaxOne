@@ -16,6 +16,7 @@ import java.security.KeyPair;
 import java.sql.SQLDataException;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,18 +28,24 @@ public class AdminService {
     private static final Integer ACCESS_EXPIRY_SECONDS = 15*60;
     private static final Integer REFERSH_EXPIRY_SECONDS = 7* 24 * 60 * 60;
 
-    @Autowired
+    //@Autowired
     private PasswordEncoder encoder;
+
+//    public AdminService() {
+//        encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+//    }
 
     @Autowired
     private AdminRepository adminRepository;
 
     public void checkAdmin(String username,String password) throws Exception {
         try{
-            Admin admin=adminRepository.findAdminAll();
-            if(admin!=null){
+            List<Admin>adminInDb=adminRepository.findAll();
+           // Admin admin=adminInDb.getFirst();
+            if(!adminInDb.isEmpty()){
                 return ;
             }else {
+                Admin admin=new Admin();
                 admin.setUserName(username);
                 admin.setPassword(encoder.encode(password));
                 adminRepository.save(admin);
@@ -50,13 +57,14 @@ public class AdminService {
     }
 
     public Optional<Admin> getAuthenticatedAdmin(String username, String password) {
-        var adminInDb = adminRepository.findAdminAll();
-        if (adminInDb==null) {
+        List<Admin> adminInDb = adminRepository.findAll();
+        Admin admin=adminInDb.getFirst();
+        if (admin==null) {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
         }
-        if (password == adminInDb.getPassword()) {
-            return Optional.of(adminInDb);
+        if (password == admin.getPassword()) {
+            return Optional.of(admin);
         } else {
             return Optional.empty();
         }
