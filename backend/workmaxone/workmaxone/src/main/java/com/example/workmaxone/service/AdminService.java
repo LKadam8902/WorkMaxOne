@@ -33,6 +33,9 @@ public class AdminService {
 
     private PasswordEncoder encoder;
 
+    @Autowired
+    private JWTservice jwtService;
+
     public AdminService() {
        encoder= new BCryptPasswordEncoder();
     }
@@ -46,7 +49,7 @@ public class AdminService {
     public void checkAdmin(String username,String password) throws Exception {
         try{
             List<Admin>adminInDb=adminRepository.findAll();
-           // Admin admin=adminInDb.getFirst();
+
             if(!adminInDb.isEmpty()){
                 return ;
             }else {
@@ -62,43 +65,43 @@ public class AdminService {
     }
 
     public Optional<Admin> getAuthenticatedAdmin(String username, String password) {
-        List<Admin> adminInDb = adminRepository.findAll();
-        Admin admin=adminInDb.getFirst();
+        Admin admin = adminRepository.findByUserName(username);
+        System.out.println("\n--- DEBUG LOGIN ---");
+        System.out.println("Incoming username: " + username);
+        System.out.println("Incoming raw password: " + password);
+
         if (admin==null) {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
         }
-        if (password == admin.getPassword()) {
+        System.out.println("Admin found. Stored username: " + admin.getUserName());
+        System.out.println("Stored HASHED password from DB: " + admin.getPassword());
+
+        if (encoder.matches(password, admin.getPassword())) {
+            System.out.println("Password match result (encoder.matches): " + encoder.matches(password, admin.getPassword()));
+            System.out.println("--- END DEBUG LOGIN ---\n");
             return Optional.of(admin);
         } else {
             return Optional.empty();
         }
     }
 
-    public Optional<Admin> getAdmin(int adminId){
-        var admin=adminRepository.findById(adminId);
-        if(admin==null){
-            return admin;
+    public Optional<Admin> getAdmin(){
+        var admin=adminRepository.findAll();
+        if(admin.isEmpty()){
+            return null;
         }
-        return admin;
+        return Optional.ofNullable(admin.getFirst());
     }
 
     public String createAccessToken(Admin admin, String role) {
-        return Jwts.builder()
-                    .signWith(pair.getPrivate(), alg)
-                    .subject(String.valueOf(admin.getAdminId()))
-                    .claims(Map.of("name", admin.getUserName(),role,true))
-                    .expiration(Date.from(Instant.now().plusSeconds(ACCESS_EXPIRY_SECONDS)))
-                    .compact();
+
+        return jwtService.createAccessToken(admin, role);
+
     }
 
     public String createRefreshToken(Admin admin, String role) {
-         return Jwts.builder()
-                    .signWith(pair.getPrivate(), alg)
-                    .subject(String.valueOf(admin.getAdminId()))
-                    .claims(Map.of("name", admin.getUserName(),role,true))
-                    .expiration(Date.from(Instant.now().plusSeconds(ACCESS_EXPIRY_SECONDS)))
-                    .compact();
+        return jwtService.createRefreshToken(admin, role);
     }
 
 }
