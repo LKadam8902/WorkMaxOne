@@ -1,5 +1,6 @@
 package com.example.config;
 
+import com.example.workmaxone.service.AdminService;
 import org.springframework.security.config.Customizer;
 
 import java.security.interfaces.RSAPublicKey;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,10 +29,15 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.example.workmaxone.service.JWTservice;
+import org.slf4j.Logger; // Import the SLF4J Logger
+import org.slf4j.LoggerFactory; // Import the SLF4J LoggerFactory
+
 
 @Configuration
 @EnableWebSecurity
 public class JwtSecurityConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminService.class); // Define the logger
 
     @Autowired
     private JWTservice jwtService;
@@ -38,26 +45,33 @@ public class JwtSecurityConfig {
     @Bean
     @Order(0)
     public SecurityFilterChain filterChainIgnoreAuth(HttpSecurity http) throws Exception{
-        http.securityMatcher("/auth/**,/error,/employee/**").authorizeHttpRequests((authorize)->authorize
-        .requestMatchers("/auth/**,/error,/employee/**").permitAll()
-        .anyRequest().authenticated())
-        .cors(Customizer.withDefaults())
-        .csrf((csrf) -> csrf.disable());
-        return http.build();                   
+        log.info("filter chain reached (at bean definition)");
+        System.out.println("Security config reached (at bean definition)");
+
+        http.securityMatcher("/auth/**", "/error", "/employee/**", "/admin/login")
+                .authorizeHttpRequests((authorize)->authorize
+                        .requestMatchers("/auth/**", "/error", "/employee/**", "/admin/login").permitAll()
+                        .anyRequest().authenticated())
+                .cors(Customizer.withDefaults())
+                .csrf(csrf->csrf.disable());
+
+        return http.build();
     }
 
     @Bean
     @Order(1)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.info("filter chain reached (at bean definition)");
+
         http.authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/getAdminDetails").hasRole("ADMIN")
                 .requestMatchers("/**").authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                 .jwt(jwt -> jwt
                     .decoder(myJwtDecoder())
                     .jwtAuthenticationConverter(myJwtAuthenticationConverter())))
                 .cors(Customizer.withDefaults())
-                .csrf((csrf) -> csrf.disable());
+                .csrf(csrf->csrf.disable());
         return http.build();
     }
 

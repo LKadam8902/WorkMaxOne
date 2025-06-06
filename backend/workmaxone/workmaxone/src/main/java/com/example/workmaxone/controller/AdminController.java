@@ -33,7 +33,7 @@ public class AdminController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody AdminRequestBody req, HttpServletResponse response) {
         var mayBeAdmin = adminService.getAuthenticatedAdmin(req.username(), req.password());
-
+        System.out.println("Login api reached");
         if (mayBeAdmin.isEmpty()) {
             return new ResponseEntity<LoginResponse>(new LoginResponse("", "Invalid username or password"),
                     HttpStatus.FORBIDDEN);
@@ -52,8 +52,8 @@ public class AdminController {
     }
 
     @GetMapping("/getAdminDetails")
-    public ResponseEntity<AdminBodyResponse> adminDetails(int adminId) {
-        var admin = adminService.getAdmin(adminId);
+    public ResponseEntity<AdminBodyResponse> adminDetails() {
+        var admin = adminService.getAdmin();
         return new ResponseEntity<>(
                 new AdminBodyResponse("Got admin details", admin.get().getAdminId(), admin.get().getUserName()),
                 HttpStatus.OK);

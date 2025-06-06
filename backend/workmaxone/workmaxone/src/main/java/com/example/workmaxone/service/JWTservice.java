@@ -64,5 +64,23 @@ public class JWTservice {
                     .compact();
     }
 
+    public String createAccessToken(Admin admin, String role) {
+        return Jwts.builder()
+                .signWith(pair.getPrivate(), alg)
+                .subject(String.valueOf(admin.getAdminId()))
+                .claims(Map.of("name", admin.getUserName(),"role",role))
+                .expiration(Date.from(Instant.now().plusSeconds(ACCESS_EXPIRY_SECONDS)))
+                .compact();
+    }
+
+    public String createRefreshToken(Admin admin, String role) {
+        return Jwts.builder()
+                .signWith(pair.getPrivate(), alg)
+                .subject(String.valueOf(admin.getAdminId()))
+                .claims(Map.of("name", admin.getUserName(),"role",role))
+                .expiration(Date.from(Instant.now().plusSeconds(REFERSH_EXPIRY_SECONDS)))
+                .compact();
+    }
+
     
 }
