@@ -42,7 +42,7 @@ public class AuthController {
                         HttpServletResponse response) {
 
                 Optional<Employee> maybeAuthenticatedBE = employeeRESTService
-                                .getAuthenticatedBenchedEmployee(loginRequest.username(), loginRequest.password());
+                                .getAuthenticatedBenchedEmployee(loginRequest.useremail(), loginRequest.password());
 
                 if (maybeAuthenticatedBE.isEmpty()) {
                         return new ResponseEntity<LoginResponse>(new LoginResponse("", "Invalid username or password"),
@@ -51,7 +51,6 @@ public class AuthController {
                 var role = RoleEnum.BENCHED_EMPLOYEE;
                 var accessToken = jwtService.createAccessToken(maybeAuthenticatedBE.get(), role.name());
                 var refreshToken = jwtService.createRefreshToken(maybeAuthenticatedBE.get(), role.name());
-                // also set the refresh token in the cookie
                 Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
                 refreshTokenCookie.setHttpOnly(true);
                 response.addCookie(refreshTokenCookie);
@@ -65,7 +64,7 @@ public class AuthController {
                         HttpServletResponse response) {
 
                 Optional<Employee> maybeAuthenticatedTL = employeeRESTService
-                                .getAuthenticatedTeamLead(loginRequest.username(), loginRequest.password());
+                                .getAuthenticatedTeamLead(loginRequest.useremail(), loginRequest.password());
 
                 if (maybeAuthenticatedTL.isEmpty()) {
                         return new ResponseEntity<LoginResponse>(new LoginResponse("", "Invalid username or password"),

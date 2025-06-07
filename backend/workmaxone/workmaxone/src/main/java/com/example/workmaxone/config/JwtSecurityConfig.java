@@ -41,9 +41,9 @@ public class JwtSecurityConfig {
         )
                 .cors(Customizer.withDefaults())
                 .csrf((csrf) -> csrf.disable())
-                // CORRECTED SYNTAX TO DISABLE HTTP BASIC AND FORM LOGIN:
-                .httpBasic(basic -> basic.disable()) // Pass a lambda that calls disable on the configurer
-                .formLogin(form -> form.disable());  // Pass a lambda that calls disable on the configurer
+
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable());
         return http.build();
     }
 
@@ -52,7 +52,7 @@ public class JwtSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         System.out.println("hello from filterchain");
         http.authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/admin/getAdminDetails").hasRole("ADMIN")
                 .requestMatchers("/**").authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
@@ -61,19 +61,17 @@ public class JwtSecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf((csrf) -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // CORRECTED SYNTAX TO DISABLE HTTP BASIC AND FORM LOGIN:
-                .httpBasic(basic -> basic.disable()) // Pass a lambda that calls disable on the configurer
-                .formLogin(form -> form.disable());  // Pass a lambda that calls disable on the configurer
+
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable());
         return http.build();
     }
 
     private JwtDecoder myJwtDecoder() {
-        // Ensure jwtService.getPublicKey() returns a valid RSAPublicKey.
-        // If it returns null or a different type, JWT decoding will fail for protected endpoints.
+
         if (!(jwtService.getPublicKey() instanceof RSAPublicKey)) {
             System.out.println("Hello from inside myJWTDecoder from security config: Public Key is NOT RSAPublicKey or null!");
-            // This is a critical error if your application relies on JWTs.
-            // You might want to throw an exception or log a SEVERE error here.
+
             throw new IllegalStateException("JWT Public Key not properly configured as RSAPublicKey. Cannot create JwtDecoder.");
         } else {
             var asRSAKey = (RSAPublicKey) jwtService.getPublicKey();

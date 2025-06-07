@@ -46,7 +46,7 @@ public class AdminService {
 
 
     @Transactional
-    public void checkAdmin(String username,String password) throws Exception {
+    public void checkAdmin(String useremail,String password) throws Exception {
         try{
             List<Admin>adminInDb=adminRepository.findAll();
 
@@ -54,7 +54,7 @@ public class AdminService {
                 return ;
             }else {
                 Admin admin=new Admin();
-                admin.setUserName(username);
+                admin.setAdminEmail(useremail);
                 admin.setPassword(encoder.encode(password));
                 adminRepository.save(admin);
                 return ;
@@ -65,7 +65,7 @@ public class AdminService {
     }
 
     public Optional<Admin> getAuthenticatedAdmin(String username, String password) {
-        Admin admin = adminRepository.findByUserName(username);
+        Admin admin = adminRepository.findByAdminEmail(username);
         System.out.println("\n--- DEBUG LOGIN ---");
         System.out.println("Incoming username: " + username);
         System.out.println("Incoming raw password: " + password);
@@ -74,7 +74,7 @@ public class AdminService {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
         }
-        System.out.println("Admin found. Stored username: " + admin.getUserName());
+        System.out.println("Admin found. Stored username: " + admin.getAdminEmail());
         System.out.println("Stored HASHED password from DB: " + admin.getPassword());
 
         if (encoder.matches(password, admin.getPassword())) {
