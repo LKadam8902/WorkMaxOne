@@ -31,8 +31,8 @@ public class EmployeeRESTService {
        this.encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
    }
 
-    public Optional<Employee> getAuthenticatedBenchedEmployee(String username, String password) {
-        var benchedEmpInDb = benchedEmployeeRepo.findByEmployeeName(username);
+    public Optional<Employee> getAuthenticatedBenchedEmployee(String useremail, String password) {
+        var benchedEmpInDb = benchedEmployeeRepo.findByEmail(useremail);
         if (benchedEmpInDb.isEmpty()) {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
@@ -44,8 +44,8 @@ public class EmployeeRESTService {
         }
     }
 
-    public Optional<Employee> getAuthenticatedTeamLead(String username, String password) {
-        var teamLeadInDb = teamLeadRepo.findByEmployeeName(username);
+    public Optional<Employee> getAuthenticatedTeamLead(String useremail, String password) {
+        var teamLeadInDb = teamLeadRepo.findByEmail(useremail);
         if (teamLeadInDb.isEmpty()) {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();

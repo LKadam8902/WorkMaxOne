@@ -11,6 +11,6 @@ import com.example.workmaxone.entity.Employee;
 @Repository
 public interface BenchedEmployeeRepo extends JpaRepository<Employee,Integer> {
 
-   public  Optional<Employee> findByEmployeeName(String username);
+   public  Optional<Employee> findByEmail(String useremail);
 
 }

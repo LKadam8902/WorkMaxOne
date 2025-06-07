@@ -32,17 +32,16 @@ public class AdminController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody AdminRequestBody req, HttpServletResponse response) {
-        var mayBeAdmin = adminService.getAuthenticatedAdmin(req.username(), req.password());
+        var mayBeAdmin = adminService.getAuthenticatedAdmin(req.useremail(), req.password());
         System.out.println("Login api reached");
         if (mayBeAdmin.isEmpty()) {
-            return new ResponseEntity<LoginResponse>(new LoginResponse("", "Invalid username or password"),
+            return new ResponseEntity<LoginResponse>(new LoginResponse("", "Invalid useremail or password"),
                     HttpStatus.FORBIDDEN);
         }
 
         var role = RoleEnum.ADMIN;
         var accessToken = adminService.createAccessToken(mayBeAdmin.get(), role.name());
         var refreshToken = adminService.createRefreshToken(mayBeAdmin.get(), role.name());
-        // also set the refresh token in the cookie
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         response.addCookie(refreshTokenCookie);
@@ -55,7 +54,7 @@ public class AdminController {
     public ResponseEntity<AdminBodyResponse> adminDetails() {
         var admin = adminService.getAdmin();
         return new ResponseEntity<>(
-                new AdminBodyResponse("Got admin details", admin.get().getAdminId(), admin.get().getUserName()),
+                new AdminBodyResponse("Got admin details", admin.get().getAdminId(), admin.get().getAdminEmail()),
                 HttpStatus.OK);
     }
 

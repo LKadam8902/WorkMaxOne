@@ -68,7 +68,7 @@ public class JWTservice {
         return Jwts.builder()
                 .signWith(pair.getPrivate(), alg)
                 .subject(String.valueOf(admin.getAdminId()))
-                .claims(Map.of("name", admin.getUserName(),"role",role))
+                .claims(Map.of("name", admin.getAdminEmail(),"role",role))
                 .expiration(Date.from(Instant.now().plusSeconds(ACCESS_EXPIRY_SECONDS)))
                 .compact();
     }
@@ -77,7 +77,7 @@ public class JWTservice {
         return Jwts.builder()
                 .signWith(pair.getPrivate(), alg)
                 .subject(String.valueOf(admin.getAdminId()))
-                .claims(Map.of("name", admin.getUserName(),"role",role))
+                .claims(Map.of("name", admin.getAdminEmail(),"role",role))
                 .expiration(Date.from(Instant.now().plusSeconds(REFERSH_EXPIRY_SECONDS)))
                 .compact();
     }

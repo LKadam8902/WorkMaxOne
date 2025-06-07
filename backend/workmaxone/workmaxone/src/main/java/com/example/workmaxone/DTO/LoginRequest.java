@@ -1,5 +1,5 @@
 package com.example.workmaxone.DTO;
 
-public record LoginRequest(String username, String password) {
+public record LoginRequest(String useremail, String password) {
 
 }
