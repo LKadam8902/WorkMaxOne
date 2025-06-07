@@ -12,7 +12,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.example.workmaxone", "com.example.config"})
 public class WorkmaxoneApplication {
 
 	@Autowired
