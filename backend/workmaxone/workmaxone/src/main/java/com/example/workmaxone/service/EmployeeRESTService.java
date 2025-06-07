@@ -27,9 +27,9 @@ public class EmployeeRESTService {
 
     private PasswordEncoder encoder;
 
-//    public void EmployeeRestService(){
-//        encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-//    }
+   public EmployeeRESTService(PasswordEncoder encoder){
+       this.encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+   }
 
     public Optional<Employee> getAuthenticatedBenchedEmployee(String username, String password) {
         var benchedEmpInDb = benchedEmployeeRepo.findByEmployeeName(username);

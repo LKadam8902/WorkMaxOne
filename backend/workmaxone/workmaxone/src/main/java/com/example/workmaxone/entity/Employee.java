@@ -44,6 +44,10 @@ public abstract class Employee {
         this.profileUrl = profileUrl;
     }
 
+    public Employee() {
+        //TODO Auto-generated constructor stub
+    }
+
     public String getEmployeeName() {
         return employeeName;
     }

@@ -15,6 +15,9 @@ public class TeamLead extends Employee {
         super(employeeName, email, password, profileUrl);
         //TODO Auto-generated constructor stub
     }
+    public TeamLead(){
+        
+    }
 
     @OneToOne
     private Project project;

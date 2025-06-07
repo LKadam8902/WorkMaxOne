@@ -14,6 +14,9 @@ public class BenchedEmployee  extends Employee{
         //TODO Auto-generated constructor stub
     }
 
+    public BenchedEmployee(){
+    }
+
     private int benchDuration;
 
     private List<String>skillSet;

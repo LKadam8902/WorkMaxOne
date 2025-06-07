@@ -37,7 +37,7 @@ public class AuthController {
         @Autowired
         private JWTservice jwtService;
 
-        @PostMapping("benchedEmployee/login")
+        @PostMapping("/benchedEmployee/login")
         public ResponseEntity<LoginResponse> loginBE(@RequestBody LoginRequest loginRequest,
                         HttpServletResponse response) {
 
@@ -60,7 +60,7 @@ public class AuthController {
                                 HttpStatus.CREATED);
         }
 
-        @PostMapping("teamLead/login")
+        @PostMapping("/teamLead/login")
         public ResponseEntity<LoginResponse> loginTL(@RequestBody LoginRequest loginRequest,
                         HttpServletResponse response) {
 
