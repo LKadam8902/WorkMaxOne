@@ -19,7 +19,8 @@ public class Project {
     //private  TeamLead Manager;
 
     @OneToMany
-    private List<Task> taskList;
+    @Column(name = "taskId")
+    private List<Task> taskId;
 
     private List<String> techStack;
 
@@ -28,7 +29,7 @@ public class Project {
     public Project(String projectName, int noOfMembers, List<Task> taskList, List<String> techStack) {
         this.projectName = projectName;
         this.noOfMembers = noOfMembers;
-        this.taskList = taskList;
+        this.taskId = taskList;
         this.techStack = techStack;
     }
 
@@ -57,11 +58,11 @@ public class Project {
     }
 
     public List<Task> getTaskList() {
-        return taskList;
+        return taskId;
     }
 
     public void setTaskList(List<Task> taskList) {
-        this.taskList = taskList;
+        this.taskId = taskList;
     }
 
     public List<String> getTechStack() {
