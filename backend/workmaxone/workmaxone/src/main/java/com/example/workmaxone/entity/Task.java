@@ -25,7 +25,7 @@ public class Task {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
-    private Optional<Project> project;
+    private Project project;
 
     private String status;
 
@@ -90,12 +90,12 @@ public class Task {
         this.assignedBy = assignedBy;
     }
 
-    public Optional<Project> getProject() {
+    public Project getProject() {
         return project;
     }
 
     public void setProject(Project project) {
-        this.project = Optional.ofNullable(project);
+        this.project = project;
     }
 
 }
