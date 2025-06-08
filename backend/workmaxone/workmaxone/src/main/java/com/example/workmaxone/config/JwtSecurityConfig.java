@@ -36,7 +36,7 @@ public class JwtSecurityConfig {
     @Order(0)
     public SecurityFilterChain filterChainIgnoreAuth(HttpSecurity http) throws Exception {
         System.out.println("Hello from ignore AUth");
-        http.securityMatcher("/auth/**", "/error", "/employee/**", "/admin/login").authorizeHttpRequests((authorize) -> authorize
+        http.securityMatcher("/auth/**", "/error", "/employee/**", "/admin/login","/admin/view/**").authorizeHttpRequests((authorize) -> authorize
                 .anyRequest().permitAll()
         )
                 .cors(Customizer.withDefaults())
