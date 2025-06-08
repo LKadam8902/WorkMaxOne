@@ -1,4 +1,4 @@
-.admin-container {
+.admin-login-container {
     width: 400px;
     margin: 100px auto;
     padding: 40px;
@@ -7,10 +7,14 @@
     border-radius: 8px;
   }
   
-
   .logo {
-    width: 100px;
-    margin-bottom: 30px;
+    width: 80px;
+    margin-bottom: 20px;
+  }
+  
+  .heading {
+    font-size: 20px;
+    margin-bottom: 25px;
   }
   
   .input-field {
