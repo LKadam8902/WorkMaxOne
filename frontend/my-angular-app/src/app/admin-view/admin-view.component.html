@@ -4,17 +4,38 @@
   </div>
   <div class="main-content">
     <div class="top-bar">
-      <img src="/assets/profile-icon.png" alt="Profile" class="profile-icon" />
+      <img src="./icon.jpg" alt="Profile" class="profile-icon" />
     </div>
-    <div class="cards-container">
-      <div class="card" *ngFor="let row of adminData">
-        <div class="card-row"><strong>Name:</strong> {{ row.name }}</div>
-        <div class="card-row"><strong>Role:</strong> {{ row.role }}</div>
-        <div class="card-row"><strong>Status:</strong> {{ row.status }}</div>
-        <div class="card-row">
-          <button class="approve-btn" (click)="approve(row)">Approve</button>
-        </div>
-      </div>
+    <div class="section-title"><strong>Dashboard</strong></div>
+    <div class="table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>userId</th>
+            <th>username</th>
+            <th>user email Id</th>
+            <th>user role</th>
+            <th>Permit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of adminData" class="admin-row">
+            <td>{{ row.userId }}</td>
+            <td>{{ row.username }}</td>
+            <td>{{ row.email }}</td>
+            <td>{{ row.role }}</td>
+            <td>
+              <button 
+                class="approve-btn" 
+                [ngClass]="{'approved': row.status === 'Approved', 'pending': row.status !== 'Approved'}"
+                (click)="approve(row)"
+                [disabled]="row.status === 'Approved'">
+                {{ row.status === 'Approved' ? 'Approved' : 'Approve' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

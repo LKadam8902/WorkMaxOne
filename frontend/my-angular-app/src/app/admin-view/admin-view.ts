@@ -10,13 +10,12 @@ import { CommonModule } from '@angular/common';
 })
 export class AdminViewComponent {
   adminData = [
-    { name: 'John Doe', role: 'Engineer', status: 'Pending' },
-    { name: 'Jane Smith', role: 'Manager', status: 'Pending' },
-    { name: 'Bob Brown', role: 'Designer', status: 'Pending' },
+    { userId: 'r323qf', username: 'demo', email: 'demo123@gmail.com', role: 'Team Lead', status: 'Pending' },
+    { userId: 'a123bc', username: 'alice', email: 'alice@example.com', role: 'Engineer', status: 'Pending' },
+    { userId: 'b456de', username: 'bob', email: 'bob@example.com', role: 'Designer', status: 'Pending' },
   ];
 
   approve(row: any) {
     row.status = 'Approved';
-    alert(`${row.name} approved!`);
   }
 }

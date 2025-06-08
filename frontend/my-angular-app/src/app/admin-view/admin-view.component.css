@@ -37,39 +37,71 @@
   border-radius: 50%;
 }
 
-.cards-container {
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 16px 0 8px 16px;
+  color: #222;
+}
+
+.table-container {
   padding: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  width: 100%;
+  overflow-x: auto;
 }
 
-.card {
-  border: 1px solid #ccc;
-  padding: 15px;
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
+  overflow: hidden;
 }
 
-.card:hover {
-  transform: translateY(-3px);
+.admin-table th, .admin-table td {
+  border: 1px solid #ccc;
+  padding: 16px 12px;
+  text-align: left;
+  font-size: 16px;
 }
 
-.card-row {
-  margin-bottom: 10px;
+.admin-table th {
+  background: #f7f7ff;
+  font-weight: 600;
+}
+
+.admin-row {
+  background: #fff;
+  transition: box-shadow 0.2s;
+}
+
+.admin-row:hover {
+  box-shadow: 0 2px 8px rgba(47,47,207,0.08);
+  background: #f5f8ff;
 }
 
 .approve-btn {
-  background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
+  font-size: 15px;
+  transition: background 0.2s;
 }
 
-.approve-btn:hover {
-  background-color: #45a049;
+.approve-btn.pending {
+  background-color: #7a7a7a;
+}
+
+.approve-btn.approved {
+  background-color: #4CAF50;
+}
+
+.approve-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
