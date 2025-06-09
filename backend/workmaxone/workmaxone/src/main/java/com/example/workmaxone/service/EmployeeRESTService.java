@@ -1,9 +1,14 @@
 package com.example.workmaxone.service;
 
+
 import java.util.Optional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+import java.util.List;
+import java.util.Optional;
+import com.example.workmaxone.exception.EmployeeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -69,19 +74,19 @@ public class EmployeeRESTService {
         return employeeRepo.save(teamLead);
     }
 
-    public List<Employee> getPendingUsers() {
-        return employeeRepo.findAll().stream()
-                .filter(emp -> !emp.isAprooved())
-                .collect(Collectors.toList());
-    }
 
-    public void approveUser(int userId) {
-        Optional<Employee> employee = employeeRepo.findById(userId);
-        if (employee.isPresent()) {
-            Employee emp = employee.get();
-            emp.setAprooved(true);
-            employeeRepo.save(emp);
-        }
+    public List<Employee> getNotApprovedUser(){
+        return employeeRepo.findAllNotApprovedYet();
+   }
+
+    public void approveEmployee(String employeeEmail) {
+        employeeRepo.findByEmail(employeeEmail)
+                .ifPresentOrElse(employee -> {
+                    employee.setAprooved(true);
+                    employeeRepo.save(employee);
+                }, () -> {
+                    throw new EmployeeException("Employee not found with id " + employeeEmail);
+                });
     }
 }
 

@@ -5,6 +5,7 @@ import { SignInAccountComponent } from './sign-in-account/sign-in-account.compon
 import { AdminLoginComponent } from './admin-login/admin-login.component';
 import { AdminViewComponent } from './admin-view/admin-view.component';
 
+
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'create-account', component: CreateAccountComponent },
