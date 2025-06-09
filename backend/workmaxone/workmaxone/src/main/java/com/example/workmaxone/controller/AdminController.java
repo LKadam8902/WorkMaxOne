@@ -1,5 +1,6 @@
 package com.example.workmaxone.controller;
 
+
 import com.example.workmaxone.DTO.EmployeeBodyResponse;
 import com.example.workmaxone.entity.Admin;
 import com.example.workmaxone.entity.Employee;
@@ -77,5 +78,4 @@ public class AdminController {
         employeeService.approveEmployee(employeeEmail);
         return new ResponseEntity<>(new EmployeeBodyResponse("admin approved"),HttpStatus.OK);
     }
-
 }

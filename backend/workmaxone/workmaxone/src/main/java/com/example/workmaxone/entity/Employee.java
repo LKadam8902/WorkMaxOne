@@ -19,7 +19,9 @@ public abstract class Employee {
 
     private String profileUrl;
 
+
     @Column(name = "is_aprooved")
+
     private boolean isAprooved;
 
     public boolean isAprooved() {

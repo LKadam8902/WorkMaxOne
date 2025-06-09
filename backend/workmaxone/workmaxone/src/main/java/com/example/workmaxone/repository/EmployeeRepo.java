@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.workmaxone.entity.Employee;
 
+
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,5 @@ public interface EmployeeRepo extends JpaRepository<Employee,Integer> {
 
     @Query("SELECT e FROM Employee e WHERE e.email = :email")
     Optional<Employee> findByEmail(@Param("email") String email);
+    
 }

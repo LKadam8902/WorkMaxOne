@@ -52,7 +52,6 @@ public class AuthController {
                 if(!maybeAuthenticatedBE.get().isAprooved()){
                         return new ResponseEntity<>(new LoginResponse("","Employee not been approved yet"),HttpStatus.FORBIDDEN);
                 }
-
                 var role = RoleEnum.BENCHED_EMPLOYEE;
                 var accessToken = jwtService.createAccessToken(maybeAuthenticatedBE.get(), role.name());
                 var refreshToken = jwtService.createRefreshToken(maybeAuthenticatedBE.get(), role.name());
@@ -79,7 +78,6 @@ public class AuthController {
                 if(!maybeAuthenticatedTL.get().isAprooved()){
                         return new ResponseEntity<>(new LoginResponse("","Employee not been approved yet"),HttpStatus.FORBIDDEN);
                 }
-
                 var role = RoleEnum.TEAM_LEAD;
                 var accessToken = jwtService.createAccessToken(maybeAuthenticatedTL.get(), role.name());
                 var refreshToken = jwtService.createRefreshToken(maybeAuthenticatedTL.get(), role.name());
