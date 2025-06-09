@@ -1,44 +1,43 @@
-<div class="admin-view-container">
-    <div class="sidebar">
-      <div class="logo">
-        <img src="your-logo-path.png" alt="Logo">
-      </div>
-      <div class="menu-icon">
-        &#9776; </div>
-      </div>
-  
-    <div class="main-content">
-      <div class="header-bar">
-        <div class="user-profile-icon">
-          <img src="https://via.placeholder.com/24" alt="User" class="profile-placeholder">
-          </div>
-      </div>
-  
-      <div class="section">
-        <h2>Section 1</h2>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>userId</th>
-                <th>username</th>
-                <th>user email Id</th>
-                <th>user role</th>
-                <th>Permit</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let user of users">
-                <td>{{ user.userId }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.userEmailId }}</td>
-                <td>{{ user.userRole }}</td>
-                <!-- <td><input type="checkbox" [(ngModel)]="user.permit"></td> -->
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-  
-      </div>
+
+<div class="admin-dashboard">
+  <div class="sidebar">
+    <div class="menu-icon">☰</div>
   </div>
+  <div class="main-content">
+    <div class="top-bar">
+      <img src="./icon.jpg" alt="Profile" class="profile-icon" />
+    </div>
+    <div class="section-title"><strong>Dashboard</strong></div>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div class="table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>userId</th>
+            <th>username</th>
+            <th>user email Id</th>
+            <th>user role</th>
+            <th>Permit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of adminData" class="admin-row">
+            <td>{{ row.userId }}</td>
+            <td>{{ row.username }}</td>
+            <td>{{ row.email }}</td>
+            <td>{{ row.role }}</td>
+            <td>
+              <button 
+                class="approve-btn" 
+                [ngClass]="{'approved': row.status === 'Approved', 'pending': row.status !== 'Approved'}"
+                (click)="approve(row)"
+                [disabled]="row.status === 'Approved'">
+                {{ row.status === 'Approved' ? 'Approved' : 'Approve' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

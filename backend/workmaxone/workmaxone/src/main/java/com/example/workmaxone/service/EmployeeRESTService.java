@@ -1,6 +1,11 @@
 package com.example.workmaxone.service;
 
 
+import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
 import java.util.List;
 import java.util.Optional;
 import com.example.workmaxone.exception.EmployeeException;
@@ -29,9 +34,9 @@ public class EmployeeRESTService {
 
     private PasswordEncoder encoder;
 
-   public EmployeeRESTService(PasswordEncoder encoder){
-       this.encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-   }
+    public EmployeeRESTService(PasswordEncoder encoder) {
+        this.encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
 
     public Optional<Employee> getAuthenticatedBenchedEmployee(String useremail, String password) {
         var benchedEmpInDb = benchedEmployeeRepo.findByEmail(useremail);
@@ -66,9 +71,9 @@ public class EmployeeRESTService {
 
     public Employee createTeamLead(String employeeName, String email, String password) {
         var teamLead = new TeamLead(employeeName, email, encoder.encode(password), null);
-
         return employeeRepo.save(teamLead);
     }
+
 
     public List<Employee> getNotApprovedUser(){
         return employeeRepo.findAllNotApprovedYet();
@@ -84,3 +89,4 @@ public class EmployeeRESTService {
                 });
     }
 }
+

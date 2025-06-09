@@ -36,4 +36,12 @@
     cursor: pointer;
     border-radius: 6px;
   }
+
+  
+  .error-message {
+    color: #ff0000;
+    margin: 10px 0;
+    font-size: 14px;
+  }
+
   

@@ -44,3 +44,15 @@ button {
 button:hover {
   background-color: #bcd4ff;
 }
+
+.error-message {
+  color: #dc2626;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.success-message {
+  color: #059669;
+  margin: 10px 0;
+  font-size: 14px;
+}
