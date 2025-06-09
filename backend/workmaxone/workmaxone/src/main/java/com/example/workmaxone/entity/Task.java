@@ -1,8 +1,10 @@
 package com.example.workmaxone.entity;
 
+import com.example.workmaxone.entity.enums.Status;
 import jakarta.persistence.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 public class Task {
@@ -15,17 +17,28 @@ public class Task {
 
     private List<String> skillSet;
 
+    private Integer  assignedTo;
 
-    private Boolean isAssigned;
-
-    private int extraMemberReq;
+    private Integer assignedBy;
 
 
-    public Task(String name, List<String> skillSet, Boolean isAssigned, int extraMemberReq) {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    private Project project;
+
+    private String status;
+
+    public Task(){
+        assignedTo=null;
+        status= Status.TO_DO.toString();
+    }
+
+
+    public Task(String name, List<String> skillSet, int teamLeadId) {
         this.name = name;
         this.skillSet = skillSet;
-        this.isAssigned = isAssigned;
-        this.extraMemberReq = extraMemberReq;
+        this.assignedBy=teamLeadId;
     }
 
     public int getTaskId() {
@@ -52,19 +65,37 @@ public class Task {
         this.skillSet = skillSet;
     }
 
-    public Boolean getAssigned() {
-        return isAssigned;
+
+    public String getStatus() {
+        return status;
     }
 
-    public void setAssigned(Boolean assigned) {
-        isAssigned = assigned;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public int getExtraMemberReq() {
-        return extraMemberReq;
+    public Integer getAssignedTo() {
+        return assignedTo;
     }
 
-    public void setExtraMemberReq(int extraMemberReq) {
-        this.extraMemberReq = extraMemberReq;
+    public void setAssignedTo(Integer assignedTo) {
+        this.assignedTo = assignedTo;
     }
+
+    public Integer getAssignedBy() {
+        return assignedBy;
+    }
+
+    public void setAssignedBy(Integer assignedBy) {
+        this.assignedBy = assignedBy;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
 }
