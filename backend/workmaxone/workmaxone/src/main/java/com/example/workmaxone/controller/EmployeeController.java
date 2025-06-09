@@ -35,15 +35,15 @@ public class EmployeeController {
         }
     }
 
-    @GetMapping("/pending")
+    @GetMapping("/view/pendingEmployee")
     public ResponseEntity<List<Employee>> getPendingUsers() {
-        List<Employee> pendingUsers = employeeRESTService.getPendingUsers();
+        List<Employee> pendingUsers = employeeRESTService.getNotApprovedUser();
         return new ResponseEntity<>(pendingUsers, HttpStatus.OK);
     }
 
-    @PostMapping("/approve/{userId}")
-    public ResponseEntity<String> approveUser(@PathVariable int userId) {
-        employeeRESTService.approveUser(userId);
+    @PostMapping("/view/approve/{email}")
+    public ResponseEntity<String> approveUser(@PathVariable("email") String email) {
+        employeeRESTService.approveEmployee(email);
         return new ResponseEntity<>("User approved successfully", HttpStatus.OK);
     }
 }

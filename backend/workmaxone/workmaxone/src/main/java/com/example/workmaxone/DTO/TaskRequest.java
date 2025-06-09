@@ -1,4 +1,4 @@
-package com.example.workmaxone.payload;
+package com.example.workmaxone.DTO;
 
 import java.util.List;
 
