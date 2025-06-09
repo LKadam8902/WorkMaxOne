@@ -44,6 +44,15 @@
   color: #222;
 }
 
+.error-message {
+  color: #dc2626;
+  margin: 10px 16px;
+  font-size: 14px;
+  padding: 8px;
+  background-color: #fee2e2;
+  border-radius: 4px;
+}
+
 .table-container {
   padding: 20px;
   width: 100%;

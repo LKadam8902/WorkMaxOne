@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import { LandingPageComponent } from './landing-page.component';
-import { CreateAccountComponent } from './create-account/create-acoount';
+import { CreateAccountComponent } from './create-account/create-account.component';
 import { SignInAccountComponent } from './sign-in-account/sign-in-account.component';
 import { AdminLoginComponent } from './admin-login/admin-login.component';
-import { AdminViewComponent } from './admin-view/admin-view';
+import { AdminViewComponent } from './admin-view/admin-view.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },

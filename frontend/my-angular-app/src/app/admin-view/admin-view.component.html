@@ -7,6 +7,7 @@
       <img src="./icon.jpg" alt="Profile" class="profile-icon" />
     </div>
     <div class="section-title"><strong>Dashboard</strong></div>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
     <div class="table-container">
       <table class="admin-table">
         <thead>
