@@ -14,7 +14,6 @@ import java.util.Optional;
 @Repository
 public interface EmployeeRepo extends JpaRepository<Employee,Integer> {
 
-
     @Query("SELECT e FROM Employee e WHERE e.isAprooved = false")
     List<Employee> findAllNotApprovedYet();
 

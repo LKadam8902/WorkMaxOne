@@ -40,10 +40,11 @@ public class TeamLeadController {
       var task=taskService.createTask(requestBody.name(),requestBody.skillSet(),teamLeadId, requestBody.projectId());
       return new ResponseEntity<>(new TaskResponse("Successfully created task"), HttpStatus.CREATED);
     }
-
+m
     @PutMapping("/assignTask")
-    public ResponseEntity<TaskResponse> assignTask(Integer taskId){
-        var task=taskService.assignTask(taskId);
+    public ResponseEntity<TaskResponse> assignTask(@AuthenticationPrincipal Jwt jwt,Integer taskId){
+        int teamLeadId=Integer.valueOf(jwt.getSubject());
+        var task=taskService.assignTask(taskId,teamLeadId);
         return new ResponseEntity<>(new TaskResponse("Successfully assigned task"),HttpStatus.OK);
     }
 
