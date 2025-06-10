@@ -8,13 +8,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import com.example.workmaxone.entity.BenchedEmployee;
 import com.example.workmaxone.entity.Employee;
 
 @Repository
 public interface BenchedEmployeeRepo extends JpaRepository<BenchedEmployee,Integer> {
 
-   public List<BenchedEmployee> findAll();
+   // public  Optional<Employee> findByEmail(String useremail);
 
-   public  Optional<BenchedEmployee> findByEmail(String useremail);
+   public List<BenchedEmployee> findByIsTaskAssignedFalse();
 
 }

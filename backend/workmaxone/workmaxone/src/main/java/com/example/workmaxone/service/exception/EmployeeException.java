@@ -1,4 +1,4 @@
-package com.example.workmaxone.exception;
+package com.example.workmaxone.service.exception;
 
 public class EmployeeException extends RuntimeException{
 

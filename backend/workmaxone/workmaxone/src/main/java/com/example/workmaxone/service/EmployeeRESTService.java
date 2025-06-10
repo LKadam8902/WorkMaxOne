@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import java.util.List;
 import java.util.Optional;
-import com.example.workmaxone.exception.EmployeeException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +20,7 @@ import com.example.workmaxone.entity.TeamLead;
 import com.example.workmaxone.repository.BenchedEmployeeRepo;
 import com.example.workmaxone.repository.EmployeeRepo;
 import com.example.workmaxone.repository.TeamLeadRepo;
+import com.example.workmaxone.service.exception.EmployeeException;
 
 @Service
 public class EmployeeRESTService {
@@ -39,7 +40,7 @@ public class EmployeeRESTService {
     }
 
     public Optional<Employee> getAuthenticatedBenchedEmployee(String useremail, String password) {
-        var benchedEmpInDb = benchedEmployeeRepo.findByEmail(useremail);
+        var benchedEmpInDb = employeeRepo.findByEmail(useremail);
         if (benchedEmpInDb.isEmpty()) {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
@@ -52,7 +53,7 @@ public class EmployeeRESTService {
     }
 
     public Optional<Employee> getAuthenticatedTeamLead(String useremail, String password) {
-        var teamLeadInDb = teamLeadRepo.findByEmail(useremail);
+        var teamLeadInDb = employeeRepo.findByEmail(useremail);
         if (teamLeadInDb.isEmpty()) {
             System.out.println("Couldn't find this Benched Employee in DB");
             return Optional.empty();
