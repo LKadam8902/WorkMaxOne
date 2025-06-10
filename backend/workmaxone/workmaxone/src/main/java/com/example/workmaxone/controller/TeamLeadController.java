@@ -1,11 +1,10 @@
 package com.example.workmaxone.controller;
 
-import com.example.workmaxone.DTO.ProjectRequest;
-import com.example.workmaxone.DTO.ProjectResponse;
-import com.example.workmaxone.DTO.TaskRequest;
-import com.example.workmaxone.DTO.TaskResponse;
+import com.example.workmaxone.DTO.*;
+import com.example.workmaxone.repository.TeamLeadRepo;
 import com.example.workmaxone.service.ProjectService;
 import com.example.workmaxone.service.TaskService;
+import com.example.workmaxone.service.TeamLeadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +21,10 @@ public class TeamLeadController {
 
     @Autowired
     private ProjectService projectService;
+
+    @Autowired
+    private TeamLeadService teamLeadService;
+
     @GetMapping("/hello")
     public String greetings(){
         return "Hello World";
@@ -29,9 +32,23 @@ public class TeamLeadController {
 
     @PostMapping("/createProject")
     public ResponseEntity<ProjectResponse> createProject(@AuthenticationPrincipal Jwt jwt,@RequestBody ProjectRequest requestBody){
+        int teamLeadId=Integer.valueOf(jwt.getSubject());
+        projectService.saveProject(teamLeadId,requestBody.name());
+        return new ResponseEntity<>(new ProjectResponse("Successfully created Project"),HttpStatus.CREATED);
+    }
+
+//    @PutMapping("/updateProject")
+//    public ResponseEntity<ProjectResponse> updateProject(@AuthenticationPrincipal Jwt jwt,@RequestBody ProjectRequest requestBody){
 //        int teamLeadId=Integer.valueOf(jwt.getSubject());
-//        projectService.saveProject(requestBody.name());
-        return new ResponseEntity<>(new ProjectResponse("Seccessfully created Project"),HttpStatus.CREATED);
+//        projectService.updateTask(teamLeadId,requestBody.name());
+//        return new ResponseEntity<>(new ProjectResponse("Succussfully updated Project"),HttpStatus.OK);
+//    }
+
+    @PutMapping("/editProfile")
+    public ResponseEntity<EmployeeBodyResponse> editProfile(@AuthenticationPrincipal Jwt jwt,@RequestBody EmployeeBody requestBody){
+        int teamLeadId=Integer.valueOf(jwt.getSubject());
+        teamLeadService.updateProfile(teamLeadId,requestBody.name(),requestBody.email(),requestBody.profileUrl(),requestBody.password());
+        return new ResponseEntity<>(new EmployeeBodyResponse("Successfully updated profile"),HttpStatus.OK);
     }
 
     @PostMapping("/createTask")
@@ -41,8 +58,8 @@ public class TeamLeadController {
       return new ResponseEntity<>(new TaskResponse("Successfully created task"), HttpStatus.CREATED);
     }
 
-    @PutMapping("/assignTask")
-    public ResponseEntity<TaskResponse> assignTask(Integer taskId){
+    @PutMapping("/assignTask/{id}")
+    public ResponseEntity<TaskResponse> assignTask(@PathVariable("id") Integer taskId){
         var task=taskService.assignTask(taskId);
         return new ResponseEntity<>(new TaskResponse("Successfully assigned task"),HttpStatus.OK);
     }
