@@ -14,12 +14,9 @@ public class Project {
 
     private String projectName;
 
-    private int noOfMembers;
-
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
-    private  TeamLead Manager;
+    private  TeamLead manager;
 
     @OneToMany
     @Column(name = "taskId")
@@ -34,7 +31,6 @@ public class Project {
 
     public Project(String projectName, int noOfMembers, List<Task> taskList, List<String> techStack) {
         this.projectName = projectName;
-        this.noOfMembers = noOfMembers;
         this.taskId = taskList;
     }
 
@@ -54,14 +50,6 @@ public class Project {
         this.projectName = projectName;
     }
 
-    public int getNoOfMembers() {
-        return noOfMembers;
-    }
-
-    public void setNoOfMembers(int noOfMembers) {
-        this.noOfMembers = noOfMembers;
-    }
-
     public List<Task> getTaskList() {
         return taskId;
     }
@@ -71,11 +59,11 @@ public class Project {
     }
 
     public TeamLead getManager() {
-        return Manager;
+        return manager;
     }
 
     public void setManager(TeamLead manager) {
-        Manager = manager;
+        manager = manager;
     }
 
     public List<Task> getTaskId() {

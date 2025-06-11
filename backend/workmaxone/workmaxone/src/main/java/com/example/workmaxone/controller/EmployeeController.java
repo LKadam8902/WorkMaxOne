@@ -35,15 +35,4 @@ public class EmployeeController {
         }
     }
 
-    @GetMapping("/view/pendingEmployee")
-    public ResponseEntity<List<Employee>> getPendingUsers() {
-        List<Employee> pendingUsers = employeeRESTService.getNotApprovedUser();
-        return new ResponseEntity<>(pendingUsers, HttpStatus.OK);
-    }
-
-    @PostMapping("/view/approve/{email}")
-    public ResponseEntity<String> approveUser(@PathVariable("email") String email) {
-        employeeRESTService.approveEmployee(email);
-        return new ResponseEntity<>("User approved successfully", HttpStatus.OK);
-    }
 }

@@ -1,5 +1,7 @@
 package com.example.workmaxone.entity;
 
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import jakarta.persistence.*;
@@ -11,11 +13,14 @@ public class BenchedEmployee  extends Employee{
 
     public BenchedEmployee(String employeeName, String email, String password, String profileUrl) {
         super(employeeName, email, password, profileUrl);
-        //TODO Auto-generated constructor stub
     }
 
     public BenchedEmployee(){
+        benchedDate= LocalDateTime.now();
     }
+
+    private LocalDateTime benchedDate;
+
 
     private int benchDuration;
 
@@ -23,12 +28,12 @@ public class BenchedEmployee  extends Employee{
     
     boolean isTaskAssigned;
 
-    public int getBenchDuration() {
-        return benchDuration;
+    public LocalDateTime getBenchDate() {
+        return benchedDate;
     }
 
-    public void setBenchDuration(int benchDuration) {
-        this.benchDuration = benchDuration;
+    public void setBenchDate(LocalDateTime benchDate) {
+        this.benchedDate = benchedDate;
     }
 
     public List<String> getSkillSet() {
@@ -45,6 +50,22 @@ public class BenchedEmployee  extends Employee{
 
     public void setTaskAssigned(boolean isTaskAssigned) {
         this.isTaskAssigned = isTaskAssigned;
+    }
+
+    public LocalDateTime getBenchedDate() {
+        return benchedDate;
+    }
+
+    public void setBenchedDate(LocalDateTime benchedDate) {
+        this.benchedDate = benchedDate;
+    }
+
+    public int getBenchDuration() {
+        return benchDuration;
+    }
+
+    public void setBenchDuration(int benchDuration) {
+        this.benchDuration = benchDuration;
     }
     
 }

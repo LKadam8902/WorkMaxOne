@@ -3,6 +3,7 @@ package com.example.workmaxone.entity;
 import com.example.workmaxone.entity.enums.Status;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,10 @@ public class Task {
     private Project project;
 
     private String status;
+
+
+
+    private LocalDateTime assignedDate;
 
     public Task(){
         assignedTo=null;
@@ -96,6 +101,14 @@ public class Task {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public LocalDateTime getAssignedDate() {
+        return assignedDate;
+    }
+
+    public void setAssignedDate(LocalDateTime assignedDate) {
+        this.assignedDate = assignedDate;
     }
 
 }
