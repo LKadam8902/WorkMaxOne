@@ -6,11 +6,13 @@ import com.example.workmaxone.repository.BenchedEmployeeRepo;
 import com.example.workmaxone.repository.TaskRepository;
 import com.example.workmaxone.service.exception.EmployeeException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class BenchedEmployeeService {
 
     @Autowired

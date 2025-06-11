@@ -16,7 +16,7 @@ public class Project {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
-    private  TeamLead Manager;
+    private  TeamLead manager;
 
     @OneToMany
     @Column(name = "taskId")
@@ -59,11 +59,11 @@ public class Project {
     }
 
     public TeamLead getManager() {
-        return Manager;
+        return manager;
     }
 
     public void setManager(TeamLead manager) {
-        Manager = manager;
+        manager = manager;
     }
 
     public List<Task> getTaskId() {

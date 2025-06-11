@@ -3,7 +3,9 @@ package com.example.workmaxone.service;
 import com.example.workmaxone.entity.TeamLead;
 import com.example.workmaxone.repository.TeamLeadRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class TeamLeadService {
 
     @Autowired
