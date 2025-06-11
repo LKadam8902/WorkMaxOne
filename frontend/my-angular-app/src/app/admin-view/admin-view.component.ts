@@ -20,6 +20,7 @@ interface User {
 export class AdminViewComponent implements OnInit {
   adminData: User[] = [];
   errorMessage: string = '';
+  showDropdown = false;
 
   constructor(private userService: UserService) {}
 
@@ -40,7 +41,6 @@ export class AdminViewComponent implements OnInit {
       },
       error: (error) => {
         this.errorMessage = 'Failed to load pending users';
-        console.error('Error loading pending users:', error);
       }
     });
   }
@@ -52,8 +52,11 @@ export class AdminViewComponent implements OnInit {
       },
       error: (error) => {
         this.errorMessage = 'Failed to approve user';
-        console.error('Error approving user:', error);
       }
     });
+  }
+
+  toggleDropdown() {
+    this.showDropdown = !this.showDropdown;
   }
 }
