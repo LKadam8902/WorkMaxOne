@@ -24,3 +24,14 @@
 .btn.gradient-custom-2:hover {
   opacity: 0.9;
 }
+
+.alert-info {
+  background-color: #cce5ff;
+  border: 1px solid #b8daff;
+  color: #004085;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
