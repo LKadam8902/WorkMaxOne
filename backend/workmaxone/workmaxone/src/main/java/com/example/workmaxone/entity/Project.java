@@ -63,7 +63,7 @@ public class Project {
     }
 
     public void setManager(TeamLead manager) {
-        manager = manager;
+        this.manager = manager;
     }
 
     public List<Task> getTaskId() {

@@ -24,6 +24,10 @@ public class BenchedEmployeeService {
     @Autowired
     private TaskRepository taskRepository;
 
+    public Optional<BenchedEmployee> getDetails(int bempid){
+        return benchedEmployeeRepo.findById(bempid);
+    }
+
     public void updateDurationAll(){
         List<BenchedEmployee>benchedEmployees=benchedEmployeeRepo.findAll();
         if(benchedEmployees.isEmpty()){
@@ -37,6 +41,15 @@ public class BenchedEmployeeService {
         }
     }
 
+    public void updateSkillSet(int bechEmployeeId,List<String>skillSet){
+        Optional<BenchedEmployee> emp=benchedEmployeeRepo.findById(bechEmployeeId);
+        if(emp==null){
+            throw  new EmployeeException("employee not found");
+        }
+        emp.get().setSkillSet(skillSet);
+        benchedEmployeeRepo.save(emp.get());
+    }
+
     public List<BenchedEmployee> getEmployees(int managerId){
         List<Task> tasksList=taskRepository.findByAssignedBy(managerId);
         List<BenchedEmployee> benchedEmployeesList=new ArrayList<>();
@@ -45,5 +58,10 @@ public class BenchedEmployeeService {
             benchedEmployeesList.add(emp.get());
         }
         return benchedEmployeesList;
+    }
+
+
+    public List<Task> getAllTasks(int benchEmployeeId) {
+        return taskRepository.findByAssignedTo(benchEmployeeId);
     }
 }
