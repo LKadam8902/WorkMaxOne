@@ -22,7 +22,7 @@ export class UserService {
   }
 
   getPendingUsers(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/employee/pending`);
+    return this.http.get(`${this.apiUrl}/admin/view/getApprovalYetUser`);
   }
 
   approveUser(userId: string): Observable<any> {
