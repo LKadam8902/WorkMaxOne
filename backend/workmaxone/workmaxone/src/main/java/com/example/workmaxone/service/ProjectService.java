@@ -56,15 +56,4 @@ public class ProjectService {
        }
     }
 
-
-    public void updateTask(int teamLeadId) {
-    }
-
-    public long calculateBenchedDuration(BenchedEmployee benchedEmployee){
-        LocalDateTime benchDateTime = benchedEmployee.getBenchDate();
-        LocalDateTime now = LocalDateTime.now();
-
-        Duration duration = Duration.between(benchDateTime, now);
-        return duration.toDays();
-    }
 }

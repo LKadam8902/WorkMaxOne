@@ -3,6 +3,7 @@ package com.example.workmaxone.controller;
 
 import java.util.Optional;
 
+import com.example.workmaxone.DTO.LogoutResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -110,5 +111,16 @@ public class AuthController {
                         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).header("Token-Status", "Invalid")
                                         .body(new LoginResponse("", "invalid Refresh Token, unauthorized"));
                 }
+        }
+
+
+        @PostMapping("/logout")
+        public ResponseEntity<LogoutResponse> logout(HttpServletResponse response) {
+                Cookie invalidatedRefreshToken = new Cookie("refreshToken", null);
+                invalidatedRefreshToken.setHttpOnly(true);
+                invalidatedRefreshToken.setMaxAge(0);
+                response.addCookie(invalidatedRefreshToken);
+                return new ResponseEntity<LogoutResponse>(
+                        new LogoutResponse("successfully logged out and cleared the refresh token cookie"), HttpStatus.OK);
         }
 }

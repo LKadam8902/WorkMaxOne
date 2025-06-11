@@ -21,6 +21,9 @@ public class BenchedEmployee  extends Employee{
 
     private LocalDateTime benchedDate;
 
+
+    private int benchDuration;
+
     private List<String>skillSet;
     
     boolean isTaskAssigned;
@@ -29,7 +32,7 @@ public class BenchedEmployee  extends Employee{
         return benchedDate;
     }
 
-    public void setBenchDate(int benchDate) {
+    public void setBenchDate(LocalDateTime benchDate) {
         this.benchedDate = benchedDate;
     }
 
@@ -49,6 +52,20 @@ public class BenchedEmployee  extends Employee{
         this.isTaskAssigned = isTaskAssigned;
     }
 
-    
+    public LocalDateTime getBenchedDate() {
+        return benchedDate;
+    }
+
+    public void setBenchedDate(LocalDateTime benchedDate) {
+        this.benchedDate = benchedDate;
+    }
+
+    public int getBenchDuration() {
+        return benchDuration;
+    }
+
+    public void setBenchDuration(int benchDuration) {
+        this.benchDuration = benchDuration;
+    }
     
 }

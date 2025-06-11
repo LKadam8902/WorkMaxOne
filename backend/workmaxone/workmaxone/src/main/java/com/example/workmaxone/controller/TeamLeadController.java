@@ -1,7 +1,10 @@
 package com.example.workmaxone.controller;
 
 import com.example.workmaxone.DTO.*;
+import com.example.workmaxone.entity.BenchedEmployee;
+import com.example.workmaxone.entity.Task;
 import com.example.workmaxone.repository.TeamLeadRepo;
+import com.example.workmaxone.service.BenchedEmployeeService;
 import com.example.workmaxone.service.ProjectService;
 import com.example.workmaxone.service.TaskService;
 import com.example.workmaxone.service.TeamLeadService;
@@ -11,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/teamLead")
@@ -24,6 +29,9 @@ public class TeamLeadController {
 
     @Autowired
     private TeamLeadService teamLeadService;
+
+    @Autowired
+    private BenchedEmployeeService benchedEmployeeService;
 
     @GetMapping("/hello")
     public String greetings(){
@@ -52,12 +60,24 @@ public class TeamLeadController {
     }
 
     @PostMapping("/createTask")
-    public ResponseEntity<TaskResponse> createTask(@AuthenticationPrincipal Jwt jwt, @RequestBody TaskRequest requestBody){
-      int teamLeadId=Integer.valueOf(jwt.getSubject());
+    public ResponseEntity<TaskResponse> createTask(@AuthenticationPrincipal Jwt jwt, @RequestBody TaskRequest requestBody) {
+        int teamLeadId = Integer.valueOf(jwt.getSubject());
+        Task task =taskService.createTask(requestBody.name(),requestBody.skillSet(),teamLeadId);
+        return new ResponseEntity<>(new TaskResponse("Successfully created task"),HttpStatus.CREATED);
+    }
   
     @PutMapping("/assignTask")
-    public ResponseEntity<TaskResponse> assignTask(@AuthenticationPrincipal Jwt jwt,Integer taskId){
-        int teamLeadId=Integer.valueOf(jwt.getSubject());
-        var task=taskService.assignTask(taskId,teamLeadId); 
+    public ResponseEntity<TaskResponse> assignTask(@AuthenticationPrincipal Jwt jwt,Integer taskId) {
+        int teamLeadId = Integer.valueOf(jwt.getSubject());
+        var task = taskService.assignTask(taskId, teamLeadId);
+        return new ResponseEntity<>(new TaskResponse("Task assigned successfully"),HttpStatus.OK);
+    }
+
+    @GetMapping("/allTaskAssignees")
+    public ResponseEntity<List<BenchedEmployee>> allAssignees(@AuthenticationPrincipal Jwt jwt){
+        int managerId=Integer.valueOf(jwt.getSubject());
+        List<BenchedEmployee> benchedEmployeeList=benchedEmployeeService.getEmployees(managerId);
+        return new ResponseEntity<>(benchedEmployeeList,HttpStatus.OK);
+    }
 
 }
