@@ -19,4 +19,10 @@ public class TeamLeadService {
         teamLead.setPassword(password);
         teamLeadRepo.save(teamLead);
     }
+
+    public TeamLead getDetails(int teamLead){
+        return teamLeadRepo.findById(teamLead);
+    }
+
+
 }
