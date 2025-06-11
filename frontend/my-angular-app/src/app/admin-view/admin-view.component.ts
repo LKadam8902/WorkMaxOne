@@ -2,15 +2,23 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../services/user.service';
 
+interface User {
+  userId: string;
+  username: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
 @Component({
   selector: 'app-admin-view',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './admin-view.component.html',
-  styleUrls: ['./admin-view.component.css']
+  styleUrls: ['./admin-view.component.css'],
+  imports: [CommonModule]
 })
 export class AdminViewComponent implements OnInit {
-  adminData: any[] = [];
+  adminData: User[] = [];
   errorMessage: string = '';
 
   constructor(private userService: UserService) {}
@@ -37,7 +45,7 @@ export class AdminViewComponent implements OnInit {
     });
   }
 
-  approve(user: any) {
+  approve(user: User) {
     this.userService.approveUser(user.userId).subscribe({
       next: () => {
         user.status = 'Approved';
@@ -48,4 +56,4 @@ export class AdminViewComponent implements OnInit {
       }
     });
   }
-} 
+}

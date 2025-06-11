@@ -1,11 +1,45 @@
-<div class="admin-login-container">
-    <img src=".\logo11.png" alt="WorkMax Logo" class="logo" />
-    <h2 class="heading">Enter Credentials Admin !</h2>
-    <form (ngSubmit)="onSubmit()">
-      <input type="email" [(ngModel)]="email" name="email" placeholder="Email" class="input-field" required />
-      <input type="password" [(ngModel)]="password" name="password" placeholder="Password" class="input-field" required />
-      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-      <button type="submit" class="submit-button">Sign In</button>
-    </form>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8 login-box">
+      <div class="login-key">
+        <i class="fa fa-key" aria-hidden="true"></i>
+      </div>
+      <div class="login-title">ADMIN PANEL</div>
+
+      <div class="login-form">
+        <form (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label class="form-control-label">USERNAME</label>
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="email"
+              name="email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-control-label">PASSWORD</label>
+            <input
+              type="password"
+              class="form-control"
+              [(ngModel)]="password"
+              name="password"
+              required
+            />
+          </div>
+
+          <div class="loginbttm">
+            <div class="login-text">
+              <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+            </div>
+            <div class="login-button">
+              <button type="submit" class="btn btn-outline-primary">LOGIN</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-  
+</div>

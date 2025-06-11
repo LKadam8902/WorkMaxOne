@@ -5,6 +5,4 @@ import { Component } from '@angular/core';
   templateUrl: './sign-in-account.component.html',
   styleUrls: ['./sign-in-account.component.css']
 })
-export class SignInAccountComponent {
-  // Will handle login logic later when reactive forms or APIs are added
-}
+export class SignInAccountComponent {}
