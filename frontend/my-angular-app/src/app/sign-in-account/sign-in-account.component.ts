@@ -1,18 +1,48 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-sign-in-account',
   templateUrl: './sign-in-account.component.html',
   styleUrls: ['./sign-in-account.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, FormsModule]
 })
 export class SignInAccountComponent {
   showForgotPasswordMessage = false;
+  email: string = '';
+  password: string = '';
+  errorMessage: string = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private userService: UserService
+  ) {}
+
+  onSubmit() {
+    // Try team lead login first
+    this.userService.teamLeadLogin(this.email, this.password).subscribe({
+      next: (response) => {
+        localStorage.setItem('token', response.accessToken);
+        this.router.navigate(['/team-lead-view']);
+      },
+      error: (teamLeadError) => {
+        // If team lead login fails, try benched employee login
+        this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
+          next: (response) => {
+            localStorage.setItem('token', response.accessToken);
+            this.router.navigate(['/benched-employee-view']);
+          },
+          error: (benchedError) => {
+            this.errorMessage = 'Invalid email or password';
+          }
+        });
+      }
+    });
+  }
 
   navigateToCreateAccount() {
     this.router.navigate(['/create-account']);

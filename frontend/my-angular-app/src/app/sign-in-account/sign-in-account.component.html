@@ -11,16 +11,30 @@
                   <!-- <h4 class="mt-1 mb-5 pb-1">Welcome to WorkMax</h4> -->
                 </div>
 
-                <form>
+                <form (ngSubmit)="onSubmit()">
                   <p>Please login to your account</p>
 
                   <div class="form-outline mb-4">
-                    <input type="text" class="form-control" placeholder="Username" />
+                    <input 
+                      type="email" 
+                      class="form-control" 
+                      placeholder="Email" 
+                      [(ngModel)]="email"
+                      name="email"
+                      required />
                   </div>
 
                   <div class="form-outline mb-4">
-                    <input type="password" class="form-control" placeholder="Password" />
+                    <input 
+                      type="password" 
+                      class="form-control" 
+                      placeholder="Password" 
+                      [(ngModel)]="password"
+                      name="password"
+                      required />
                   </div>
+
+                  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
                   <div class="text-center pt-1 mb-5 pb-1">
                     <button type="submit" class="btn btn-primary btn-block gradient-custom-2 mb-3">

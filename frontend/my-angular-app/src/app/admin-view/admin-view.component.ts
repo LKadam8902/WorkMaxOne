@@ -46,7 +46,7 @@ export class AdminViewComponent implements OnInit {
   }
 
   approve(user: User) {
-    this.userService.approveUser(user.userId).subscribe({
+    this.userService.approveUser(user.email).subscribe({
       next: () => {
         user.status = 'Approved';
       },

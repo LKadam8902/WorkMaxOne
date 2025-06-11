@@ -1,0 +1,88 @@
+<div class="team-lead-dashboard">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="dashboard-icon" title="Dashboard">📊</div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="top-bar">
+      <!-- Left: Logo -->
+      <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
+    
+      <!-- Right: Profile Dropdown -->
+      <div class="profile-dropdown">
+        <img src="./icon.jpg" alt="Profile" class="profile-icon" (click)="toggleDropdown()" />
+        <div class="dropdown-menu" *ngIf="showDropdown">
+          <p>Team Lead</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <!-- Projects Section -->
+    <div class="section">
+      <div class="section-title">Projects</div>
+      <div class="create-form">
+        <input type="text" [(ngModel)]="newProjectName" placeholder="New project name" />
+        <button (click)="createProject()" class="create-btn">Create Project</button>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let project of projects">
+              <td>{{ project.id }}</td>
+              <td>{{ project.name }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="section">
+      <div class="section-title">Tasks</div>
+      <div class="create-form">
+        <input type="text" [(ngModel)]="newTaskName" placeholder="New task name" />
+        <input type="text" [(ngModel)]="newTaskSkills" placeholder="Skills (comma-separated)" />
+        <button (click)="createTask()" class="create-btn">Create Task</button>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Skills</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of tasks">
+              <td>{{ task.id }}</td>
+              <td>{{ task.name }}</td>
+              <td>{{ task.skillSet.join(', ') }}</td>
+              <td>{{ task.status }}</td>
+              <td>
+                <button 
+                  *ngIf="task.status === 'Pending'"
+                  (click)="assignTask(task.id)" 
+                  class="assign-btn">
+                  Assign
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> 

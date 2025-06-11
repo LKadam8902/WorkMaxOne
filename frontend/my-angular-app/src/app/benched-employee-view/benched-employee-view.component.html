@@ -1,0 +1,67 @@
+<div class="benched-employee-dashboard">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="dashboard-icon" title="Dashboard">📊</div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="top-bar">
+      <!-- Left: Logo -->
+      <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
+    
+      <!-- Right: Profile Dropdown -->
+      <div class="profile-dropdown">
+        <img src="./icon.jpg" alt="Profile" class="profile-icon" (click)="toggleDropdown()" />
+        <div class="dropdown-menu" *ngIf="showDropdown">
+          <p>Benched Employee</p>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <!-- Skills Section -->
+    <div class="section">
+      <div class="section-title">Add Skills</div>
+      <div class="create-form">
+        <input type="text" [(ngModel)]="newSkills" placeholder="Skills (comma-separated)" />
+        <button (click)="addSkills()" class="create-btn">Add Skills</button>
+      </div>
+    </div>
+
+    <!-- Tasks Section -->
+    <div class="section">
+      <div class="section-title">My Tasks</div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Skills</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let task of tasks">
+              <td>{{ task.id }}</td>
+              <td>{{ task.name }}</td>
+              <td>{{ task.skillSet.join(', ') }}</td>
+              <td>{{ task.status }}</td>
+              <td>
+                <button 
+                  *ngIf="task.status === 'In Progress'"
+                  (click)="updateTaskStatus(task.id, 'Completed')" 
+                  class="complete-btn">
+                  Mark Complete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> 
