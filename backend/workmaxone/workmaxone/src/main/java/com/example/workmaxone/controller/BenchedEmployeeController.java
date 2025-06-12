@@ -56,6 +56,15 @@ public class BenchedEmployeeController {
         return new ResponseEntity<>(bempTasks,HttpStatus.OK);
     }
 
+    @PutMapping("/editProfile")
+    public ResponseEntity<EmployeeBodyResponse> editProfile(@AuthenticationPrincipal Jwt jwt,@RequestBody EmployeeBody requestBody){
+        int benchedEmpId=Integer.valueOf(jwt.getSubject());
+        benchedEmployeeService.updateProfile(benchedEmpId,requestBody.name(),requestBody.profileUrl());
+        return new ResponseEntity<>(new EmployeeBodyResponse("Successfully updated profile"),HttpStatus.OK);
+    }
+
+
+    
 
 
 

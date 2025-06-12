@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.workmaxone.entity.BenchedEmployee;
 import com.example.workmaxone.entity.Employee;
+import com.example.workmaxone.entity.TeamLead;
 
 @Repository
 public interface BenchedEmployeeRepo extends JpaRepository<BenchedEmployee,Integer> {
@@ -17,5 +18,7 @@ public interface BenchedEmployeeRepo extends JpaRepository<BenchedEmployee,Integ
    // public  Optional<Employee> findByEmail(String useremail);
 
    public List<BenchedEmployee> findByIsTaskAssignedFalse();
+
+   // public BenchedEmployee findById(int benchempId);
 
 }
