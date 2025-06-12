@@ -2,6 +2,7 @@ package com.example.workmaxone.service;
 
 import com.example.workmaxone.entity.BenchedEmployee;
 import com.example.workmaxone.entity.Task;
+import com.example.workmaxone.entity.TeamLead;
 import com.example.workmaxone.repository.BenchedEmployeeRepo;
 import com.example.workmaxone.repository.TaskRepository;
 import com.example.workmaxone.service.exception.EmployeeException;
@@ -42,7 +43,7 @@ public class BenchedEmployeeService {
     }
 
     public void updateSkillSet(int bechEmployeeId,List<String>skillSet){
-        Optional<BenchedEmployee> emp=benchedEmployeeRepo.findById(bechEmployeeId);
+        Optional<BenchedEmployee> emp=getDetails(bechEmployeeId);
         if(emp==null){
             throw  new EmployeeException("employee not found");
         }
@@ -63,5 +64,13 @@ public class BenchedEmployeeService {
 
     public List<Task> getAllTasks(int benchEmployeeId) {
         return taskRepository.findByAssignedTo(benchEmployeeId);
+    }
+
+    public void updateProfile(int benchedEmpId, String name, String profileUrl) {
+
+        BenchedEmployee benchEmp = benchedEmployeeRepo.findById(benchedEmpId).get();
+        benchEmp.setEmployeeName(name);
+        benchEmp.setProfileUrl(profileUrl);
+        benchedEmployeeRepo.save(benchEmp);
     }
 }

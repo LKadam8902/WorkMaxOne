@@ -64,7 +64,7 @@ public class TeamLeadController {
     @PutMapping("/editProfile")
     public ResponseEntity<EmployeeBodyResponse> editProfile(@AuthenticationPrincipal Jwt jwt,@RequestBody EmployeeBody requestBody){
         int teamLeadId=Integer.valueOf(jwt.getSubject());
-        teamLeadService.updateProfile(teamLeadId,requestBody.name(),requestBody.email(),requestBody.profileUrl(),requestBody.password());
+        teamLeadService.updateProfile(teamLeadId,requestBody.name(),requestBody.profileUrl());
         return new ResponseEntity<>(new EmployeeBodyResponse("Successfully updated profile"),HttpStatus.OK);
     }
 
