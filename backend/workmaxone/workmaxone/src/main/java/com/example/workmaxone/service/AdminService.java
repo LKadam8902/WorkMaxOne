@@ -27,7 +27,7 @@ public class AdminService {
 
      private static final SignatureAlgorithm alg = Jwts.SIG.RS512;
     private KeyPair pair;
-    private static final Integer ACCESS_EXPIRY_SECONDS = 15*60;
+    private static final Integer ACCESS_EXPIRY_SECONDS = 30*60;
     private static final Integer REFERSH_EXPIRY_SECONDS = 7* 24 * 60 * 60;
 
 

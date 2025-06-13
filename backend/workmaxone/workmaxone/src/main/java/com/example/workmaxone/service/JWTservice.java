@@ -21,7 +21,7 @@ public class JWTservice {
 
     private static final SignatureAlgorithm alg = Jwts.SIG.RS512;
     private KeyPair pair;
-    private static final Integer ACCESS_EXPIRY_SECONDS = 15*60;
+    private static final Integer ACCESS_EXPIRY_SECONDS = 30*60;
     private static final Integer REFERSH_EXPIRY_SECONDS = 7* 24 * 60 * 60;
 
     public JWTservice(){
@@ -64,6 +64,8 @@ public class JWTservice {
                     .compact();
     }
 
+
+    //For Admins
     public String createAccessToken(Admin admin, String role) {
         return Jwts.builder()
                 .signWith(pair.getPrivate(), alg)

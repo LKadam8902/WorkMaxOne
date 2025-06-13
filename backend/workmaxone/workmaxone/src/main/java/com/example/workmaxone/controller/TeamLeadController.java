@@ -35,11 +35,6 @@ public class TeamLeadController {
     @Autowired
     private BenchedEmployeeService benchedEmployeeService;
 
-    @GetMapping("/hello")
-    public String greetings(){
-        return "Hello World";
-    }
-
     @PostMapping("/createProject")
     public ResponseEntity<ProjectResponse> createProject(@AuthenticationPrincipal Jwt jwt,@RequestBody ProjectRequest requestBody){
         int teamLeadId=Integer.valueOf(jwt.getSubject());
@@ -47,7 +42,8 @@ public class TeamLeadController {
         return new ResponseEntity<>(new ProjectResponse("Successfully created Project"),HttpStatus.CREATED);
     }
 
-//    @PutMapping("/updateProject")
+//    @PutMapping("/updateProject")//-> move this to Admin in future as Admin can only update the teamLEad like details 
+
 //    public ResponseEntity<ProjectResponse> updateProject(@AuthenticationPrincipal Jwt jwt,@RequestBody ProjectRequest requestBody){
 //        int teamLeadId=Integer.valueOf(jwt.getSubject());
 //        projectService.updateTask(teamLeadId,requestBody.name());

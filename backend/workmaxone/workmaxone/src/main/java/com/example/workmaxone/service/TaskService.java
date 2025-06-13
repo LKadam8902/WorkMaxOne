@@ -83,7 +83,7 @@ public class TaskService {
         Optional<BenchedEmployee> benchedEmployee=benchedEmployeeRepo.findById(task.getAssignedTo());
         benchedEmployee.get().setBenchDate(LocalDateTime.now());
         benchedEmployee.get().setTaskAssigned(false);
-        task.setAssignedTo(null);
+        // task.setAssignedTo(null);
         taskRepository.save(task);
         benchedEmployeeRepo.save(benchedEmployee.get());
     }
