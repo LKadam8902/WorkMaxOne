@@ -64,6 +64,8 @@ public class JWTservice {
                     .compact();
     }
 
+
+    //For Admins
     public String createAccessToken(Admin admin, String role) {
         return Jwts.builder()
                 .signWith(pair.getPrivate(), alg)
