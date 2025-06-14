@@ -19,14 +19,35 @@
       </div>
     </div>
 
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="message error-message" (click)="clearError()">
+      {{ errorMessage }}
+      <span class="close-btn">×</span>
+    </div>
+    <div *ngIf="successMessage" class="message success-message">
+      {{ successMessage }}
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-spinner">
+      <div class="spinner"></div>
+    </div>
 
     <!-- Projects Section -->
     <div class="section">
       <div class="section-title">Projects</div>
       <div class="create-form">
-        <input type="text" [(ngModel)]="newProjectName" placeholder="New project name" />
-        <button (click)="createProject()" class="create-btn">Create Project</button>
+        <input 
+          type="text" 
+          [(ngModel)]="newProjectName" 
+          placeholder="New project name"
+          [class.error]="errorMessage && !newProjectName.trim()" />
+        <button 
+          (click)="createProject()" 
+          class="create-btn"
+          [disabled]="isLoading">
+          Create Project
+        </button>
       </div>
       <div class="table-container">
         <table class="data-table">
@@ -50,9 +71,34 @@
     <div class="section">
       <div class="section-title">Tasks</div>
       <div class="create-form">
-        <input type="text" [(ngModel)]="newTaskName" placeholder="New task name" />
-        <input type="text" [(ngModel)]="newTaskSkills" placeholder="Skills (comma-separated)" />
-        <button (click)="createTask()" class="create-btn">Create Task</button>
+        <select 
+          [(ngModel)]="selectedProjectId"
+          [class.error]="errorMessage && !selectedProjectId"
+          class="project-select">
+          <option [ngValue]="null">Select a project</option>
+          <option *ngFor="let project of projects" [value]="project.id">
+            {{ project.name }}
+          </option>
+        </select>
+        <input 
+          type="text" 
+          [(ngModel)]="newTaskName" 
+          placeholder="New task name"
+          [class.error]="errorMessage && !newTaskName.trim()" />
+        <div class="skills-input">
+          <input 
+            type="text" 
+            [(ngModel)]="newTaskSkills" 
+            placeholder="Skills (comma-separated)"
+            [class.error]="errorMessage && !newTaskSkills.trim()" />
+          <div class="skills-hint">Enter skills separated by commas (e.g., Java, Python, React)</div>
+        </div>
+        <button 
+          (click)="createTask()" 
+          class="create-btn"
+          [disabled]="isLoading">
+          Create Task
+        </button>
       </div>
       <div class="table-container">
         <table class="data-table">
@@ -60,6 +106,7 @@
             <tr>
               <th>ID</th>
               <th>Name</th>
+              <th>Project</th>
               <th>Skills</th>
               <th>Status</th>
               <th>Action</th>
@@ -69,13 +116,21 @@
             <tr *ngFor="let task of tasks">
               <td>{{ task.id }}</td>
               <td>{{ task.name }}</td>
-              <td>{{ task.skillSet.join(', ') }}</td>
+              <td>{{ getProjectName(task.projectId) }}</td>
+              <td>
+                <div class="skills-tags">
+                  <span *ngFor="let skill of task.skillSet" class="skill-tag">
+                    {{ skill }}
+                  </span>
+                </div>
+              </td>
               <td>{{ task.status }}</td>
               <td>
                 <button 
                   *ngIf="task.status === 'Pending'"
                   (click)="assignTask(task.id)" 
-                  class="assign-btn">
+                  class="assign-btn"
+                  [disabled]="isLoading">
                   Assign
                 </button>
               </td>
