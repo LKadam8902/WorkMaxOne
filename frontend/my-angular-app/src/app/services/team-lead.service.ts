@@ -22,8 +22,8 @@ export class TeamLeadService {
     return this.http.post(`${this.apiUrl}/createProject`, { name });
   }
 
-  createTask(name: string, skillSet: string[], projectId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/createTask`, { name, skillSet, projectId });
+  createTask(name: string, skillSet: string[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/createTask`, { name, skillSet });
   }
 
   assignTask(taskId: number): Observable<any> {

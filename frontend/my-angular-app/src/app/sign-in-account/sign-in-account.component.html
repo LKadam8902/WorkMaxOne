@@ -11,15 +11,7 @@
                   <!-- <h4 class="mt-1 mb-5 pb-1">Welcome to WorkMax</h4> -->
                 </div>
 
-                <div *ngIf="errorMessage" class="error-message">
-                  {{ errorMessage }}
-                </div>
-                
-                <div *ngIf="showForgotPasswordMessage" class="success-message">
-                  Password reset instructions have been sent to your email.
-                </div>
-
-                <form (ngSubmit)="onSubmit()" #signInForm="ngForm">
+                <form (ngSubmit)="onSubmit()">
                   <p>Please login to your account</p>
 
                   <div class="form-outline mb-4">
@@ -29,9 +21,7 @@
                       placeholder="Email" 
                       [(ngModel)]="email"
                       name="email"
-                      required
-                      [disabled]="isLoading"
-                      email />
+                      required />
                   </div>
 
                   <div class="form-outline mb-4">
@@ -41,37 +31,25 @@
                       placeholder="Password" 
                       [(ngModel)]="password"
                       name="password"
-                      required
-                      [disabled]="isLoading" />
+                      required />
                   </div>
 
+                  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
                   <div class="text-center pt-1 mb-5 pb-1">
-                    <button 
-                      type="submit" 
-                      [disabled]="!signInForm.form.valid || isLoading"
-                      class="btn btn-primary btn-block gradient-custom-2 mb-3">
-                      <span *ngIf="!isLoading">Log in</span>
-                      <span *ngIf="isLoading" class="loading-spinner"></span>
+                    <button type="submit" class="btn btn-primary btn-block gradient-custom-2 mb-3">
+                      Log in
                     </button>
                     <br>
-                    <button 
-                      type="button" 
-                      (click)="handleForgotPassword()" 
-                      class="btn btn-outline-danger"
-                      [disabled]="isLoading">
-                      Forgot password?
-                    </button>
+                    <a class="text-muted" href="#" (click)="handleForgotPassword(); $event.preventDefault()">Forgot password?</a>
+                    <div *ngIf="showForgotPasswordMessage" class="alert alert-info mt-2">
+                      Please contact your administrator to reset your password.
+                    </div>
                   </div>
 
                   <div class="d-flex align-items-center justify-content-center pb-4">
                     <p class="mb-0 me-2">Don't have an account?</p>
-                    <button 
-                      type="button" 
-                      (click)="navigateToCreateAccount()"
-                      [disabled]="isLoading"
-                      class="btn btn-outline-danger">
-                      Create new
-                    </button>
+                    <button type="button" class="btn btn-outline-danger" (click)="navigateToCreateAccount()">Create new</button>
                   </div>
                 </form>
 

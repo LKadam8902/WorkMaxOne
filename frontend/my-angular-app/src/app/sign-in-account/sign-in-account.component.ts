@@ -16,7 +16,6 @@ export class SignInAccountComponent {
   email: string = '';
   password: string = '';
   errorMessage: string = '';
-  isLoading = false;
 
   constructor(
     private router: Router,
@@ -24,40 +23,21 @@ export class SignInAccountComponent {
   ) {}
 
   onSubmit() {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter both email and password';
-      return;
-    }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
     // Try team lead login first
     this.userService.teamLeadLogin(this.email, this.password).subscribe({
       next: (response) => {
-        if (response && response.accessToken) {
-          localStorage.setItem('token', response.accessToken);
-          this.router.navigate(['/team-lead-view']);
-        } else {
-          this.errorMessage = 'Invalid response from server';
-        }
-        this.isLoading = false;
+        localStorage.setItem('token', response.accessToken);
+        this.router.navigate(['/team-lead-view']);
       },
       error: (teamLeadError) => {
         // If team lead login fails, try benched employee login
         this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
           next: (response) => {
-            if (response && response.accessToken) {
-              localStorage.setItem('token', response.accessToken);
-              this.router.navigate(['/benched-employee-view']);
-            } else {
-              this.errorMessage = 'Invalid response from server';
-            }
-            this.isLoading = false;
+            localStorage.setItem('token', response.accessToken);
+            this.router.navigate(['/benched-employee-view']);
           },
           error: (benchedError) => {
             this.errorMessage = 'Invalid email or password';
-            this.isLoading = false;
           }
         });
       }
