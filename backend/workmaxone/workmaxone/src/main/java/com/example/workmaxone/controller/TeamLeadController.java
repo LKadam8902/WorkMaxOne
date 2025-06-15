@@ -4,6 +4,7 @@ import com.example.workmaxone.DTO.*;
 import com.example.workmaxone.entity.BenchedEmployee;
 import com.example.workmaxone.entity.Task;
 import com.example.workmaxone.entity.TeamLead;
+import com.example.workmaxone.repository.TeamLeadRepo;
 import com.example.workmaxone.service.BenchedEmployeeService;
 import com.example.workmaxone.service.ProjectService;
 import com.example.workmaxone.service.TaskService;
@@ -61,40 +62,20 @@ public class TeamLeadController {
         int teamLeadId=Integer.valueOf(jwt.getSubject());
         teamLeadService.updateProfile(teamLeadId,requestBody.name(),requestBody.profileUrl());
         return new ResponseEntity<>(new EmployeeBodyResponse("Successfully updated profile"),HttpStatus.OK);
-    }    @PostMapping("/createTask")
-    public ResponseEntity<TaskResponse> createTask(@AuthenticationPrincipal Jwt jwt, @RequestBody TaskRequest requestBody) {
-        try {
-            int teamLeadId = Integer.valueOf(jwt.getSubject());
-            
-            // Validate request body
-            if (requestBody.name() == null || requestBody.name().trim().isEmpty()) {
-                return new ResponseEntity<>(new TaskResponse("Task name cannot be empty"), HttpStatus.BAD_REQUEST);
-            }
-            if (requestBody.skillSet() == null || requestBody.skillSet().isEmpty()) {
-                return new ResponseEntity<>(new TaskResponse("SkillSet cannot be empty"), HttpStatus.BAD_REQUEST);
-            }
-            
-            Task task = taskService.createTask(requestBody.name(), requestBody.skillSet(), teamLeadId);
-            return new ResponseEntity<>(new TaskResponse("Successfully created task with ID: " + task.getTaskId()), HttpStatus.CREATED);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(new TaskResponse("Failed to create task: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
+
+    @PostMapping("/createTask")
+    public ResponseEntity<TaskResponse> createTask(@AuthenticationPrincipal Jwt jwt, @RequestBody TaskRequest requestBody) {
+        int teamLeadId = Integer.valueOf(jwt.getSubject());
+        Task task =taskService.createTask(requestBody.name(),requestBody.skillSet(),teamLeadId);
+        return new ResponseEntity<>(new TaskResponse("Successfully created task"),HttpStatus.CREATED);
+    }
+  
     @PutMapping("/assignTask/{id}")
-    public ResponseEntity<TaskAssignResponse> assignTask(@AuthenticationPrincipal Jwt jwt,@PathVariable("id") Integer taskId) {
-        try {
-            int teamLeadId = Integer.valueOf(jwt.getSubject());
-            ResponseEntity<TaskAssignResponse> response = taskService.assignTask(taskId, teamLeadId);
-            return response;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(
-                new TaskAssignResponse(List.of(), "Failed to assign task: " + e.getMessage()), 
-                HttpStatus.INTERNAL_SERVER_ERROR
-            );
-        }
+    public ResponseEntity<TaskResponse> assignTask(@AuthenticationPrincipal Jwt jwt,@PathVariable("id") Integer taskId) {
+        int teamLeadId = Integer.valueOf(jwt.getSubject());
+        var task = taskService.assignTask(taskId, teamLeadId);
+        return new ResponseEntity<>(new TaskResponse("Task assigned successfully"),HttpStatus.OK);
     }
 
     @GetMapping("/allTaskAssignees")

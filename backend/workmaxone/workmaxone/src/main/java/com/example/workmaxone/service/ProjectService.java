@@ -40,21 +40,17 @@ public class ProjectService {
 
     public void saveProject(Integer teamLeadId,String projectName){
        try {
-           Optional<TeamLead> teamLeadOpt = teamLeadRepository.findById(teamLeadId);
-           if (teamLeadOpt.isEmpty() || teamLeadOpt.get() == null) {
-               throw new ProjectException("Unable to find team lead :" + teamLeadId);
-           }
-           TeamLead teamLead = teamLeadOpt.get();
-           if (teamLead.getProject() != null) {
-               throw new ProjectException("Team lead already has a project. Only one project per team lead is allowed.");
-           }
            Project project = new Project();
            project.setProjectName(projectName);
-           project.setNoOfMembers(1); // Set default value as requested
-           project.setManager(teamLead);
+           Optional<TeamLead> teamLead=teamLeadRepository.findById(teamLeadId);
+           if (teamLead.get()==null){
+               throw new ProjectException("enable to find team lead :"+teamLeadId);
+           }else {
+               project.setManager(teamLead.get());
+          }
            projectRepository.save(project);
-           teamLead.setProject(project);
-           teamLeadRepository.save(teamLead);
+           teamLead.get().setProject(project);
+           teamLeadRepository.save(teamLead.get());
        }catch(Exception e){
            throw new ProjectException("Enable to add project due to this error :"+e.getMessage());
        }
