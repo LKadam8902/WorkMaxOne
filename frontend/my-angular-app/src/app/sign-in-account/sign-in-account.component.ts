@@ -20,22 +20,28 @@ export class SignInAccountComponent {
   constructor(
     private router: Router,
     private userService: UserService
-  ) {}
-  onSubmit() {
+  ) {}  onSubmit() {
+    console.log('Login attempt with:', this.email, this.password);
+    this.errorMessage = '';
+    
     // Try team lead login first
     this.userService.teamLeadLogin(this.email, this.password).subscribe({
       next: (response) => {
+        console.log('Team lead login successful:', response);
         localStorage.setItem('token', response.jwt);
         this.router.navigate(['/team-lead-view']);
       },
       error: (teamLeadError) => {
+        console.log('Team lead login failed:', teamLeadError);
         // If team lead login fails, try benched employee login
         this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
           next: (response) => {
+            console.log('Benched employee login successful:', response);
             localStorage.setItem('token', response.jwt);
             this.router.navigate(['/benched-employee-view']);
           },
           error: (benchedError) => {
+            console.log('Benched employee login failed:', benchedError);
             this.errorMessage = 'Invalid email or password';
           }
         });

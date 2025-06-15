@@ -35,18 +35,20 @@ export class UserService {
   approveUser(userId: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/admin/view/ApproveEmployee/${userId}`, {}, { headers: this.getAuthHeaders() });
   }
-
   teamLeadLogin(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/teamLead/login`, {
+    const loginData = {
       useremail: email,
       password: password
-    });
-  }
+    };
+    console.log('Team lead login request:', loginData);
+    return this.http.post(`${this.apiUrl}/auth/teamLead/login`, loginData);  }
 
   benchedEmployeeLogin(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/auth/benchedEmployee/login`, {
+    const loginData = {
       useremail: email,
       password: password
-    });
+    };
+    console.log('Benched employee login request:', loginData);
+    return this.http.post(`${this.apiUrl}/auth/benchedEmployee/login`, loginData);
   }
-} 
+}

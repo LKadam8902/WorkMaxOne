@@ -6,83 +6,120 @@
 
   <!-- Main content -->
   <div class="main-content">
+    <!-- Top bar -->
     <div class="top-bar">
       <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
-      <div class="profile-dropdown">
-        <img src="./icon.jpg" alt="Profile" class="profile-icon" (click)="toggleDropdown()" />
-        <div class="dropdown-menu" *ngIf="showDropdown">
-          <p>Team Lead</p>
+      <div class="top-bar-actions">
+        <div class="profile-dropdown">
+          <img src="./icon.jpg" alt="Profile" class="profile-icon" />
+          <div class="dropdown-menu">
+            <p>Team Lead</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>    <!-- Projects Section -->
-    <div class="section">
-      <div class="section-title">Projects</div>
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+      <button *ngIf="errorMessage.includes('session') || errorMessage.includes('log in')" 
+              (click)="redirectToLogin()" 
+              class="login-btn">
+        Go to Login
+      </button>
+    </div>
+    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+    <div *ngIf="isLoading" class="loading-message">Loading...</div>
 
-      <div *ngIf="projects.length === 0 && !showCreateForm">
-        <div class="create-form">
-          <input type="text" [(ngModel)]="newProjectName" placeholder="Project name" />
-          <button (click)="checkOrCreateProject()" class="create-btn">Create Project</button>
-        </div>
+    <!-- Progress indicator -->
+    <div class="progress-steps">
+      <div class="step" [class.active]="currentStep === 'project'" [class.completed]="hasExistingProject">
+        <span class="step-number">1</span>
+        <span class="step-label">Create Project</span>
       </div>
-
-      <div *ngIf="showTaskForm">
-        <div class="create-form">
-          <input type="text" [(ngModel)]="newTaskName" placeholder="Task name" />
-          <input type="text" [(ngModel)]="newTaskSkills" placeholder="Skills (comma-separated)" />
-          <button (click)="submitProjectAndTask()" class="create-btn">Submit Project & Task</button>
-          <button (click)="resetForm()" class="cancel-btn">Cancel</button>
-        </div>
+      <div class="step" [class.active]="currentStep === 'task'" [class.completed]="currentStep === 'complete'">
+        <span class="step-number">2</span>
+        <span class="step-label">Add Task</span>
       </div>
-
-      <div *ngIf="projects.length > 0" class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let project of projects">
-              <td>{{ project.id }}</td>
-              <td>{{ project.name }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button (click)="showCreateForm = true" class="create-btn" style="margin-top: 10px;">➕ Create New Project</button>
+      <div class="step" [class.active]="currentStep === 'complete'">
+        <span class="step-number">3</span>
+        <span class="step-label">Complete</span>
       </div>
     </div>
 
-    <!-- Tasks Section -->
-    <div class="section" *ngIf="tasks.length > 0">
-      <div class="section-title">Tasks</div>
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Skills</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let task of tasks">
-              <td>{{ task.id }}</td>
-              <td>{{ task.name }}</td>
-              <td>{{ task.skillSet.join(', ') }}</td>
-              <td>{{ task.status }}</td>
-              <td>
-                <button *ngIf="task.status === 'Pending'" (click)="assignTask(task.id)" class="assign-btn">
-                  Assign
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Step 1: Create Project -->
+    <div *ngIf="currentStep === 'project'" class="step-content">
+      <h2>Create Your Project</h2>
+      <p>Start by creating a new project. You can only create one project as a team lead.</p>
+      
+      <div class="form-group">
+        <label for="projectName">Project Name:</label>
+        <input 
+          id="projectName"
+          type="text" 
+          [(ngModel)]="projectName" 
+          placeholder="Enter project name"
+          [disabled]="isLoading"
+          class="form-input" />
+      </div>
+      
+      <button 
+        (click)="onProjectSubmit()" 
+        [disabled]="isLoading || !projectName.trim()"
+        class="primary-btn">
+        {{ isLoading ? 'Creating...' : 'Create Project' }}
+      </button>
+    </div>
+
+    <!-- Step 2: Add Task -->
+    <div *ngIf="currentStep === 'task'" class="step-content">
+      <h2>Add a Task</h2>
+      <p *ngIf="!hasExistingProject">Great! Your project has been created. Now add your first task.</p>
+      <p *ngIf="hasExistingProject">Add a new task to your existing project.</p>
+      
+      <div class="form-group">
+        <label for="taskName">Task Name:</label>
+        <input 
+          id="taskName"
+          type="text" 
+          [(ngModel)]="taskName" 
+          placeholder="Enter task name"
+          [disabled]="isLoading"
+          class="form-input" />
+      </div>
+      
+      <div class="form-group">
+        <label for="skills">Required Skills:</label>
+        <input 
+          id="skills"
+          type="text" 
+          [(ngModel)]="skills" 
+          placeholder="Enter skills separated by commas (e.g., Java, Spring, Angular)"
+          [disabled]="isLoading"
+          class="form-input" />
+        <small class="form-help">Enter the skills required for this task, separated by commas</small>
+      </div>
+      
+      <button 
+        (click)="onTaskSubmit()" 
+        [disabled]="isLoading || !taskName.trim() || !skills.trim()"
+        class="primary-btn">
+        {{ isLoading ? 'Creating...' : 'Create Task' }}
+      </button>
+    </div>
+
+    <!-- Step 3: Complete -->
+    <div *ngIf="currentStep === 'complete'" class="step-content">
+      <h2>✅ Task Created Successfully!</h2>
+      <p>Your task has been created and is now available for assignment to team members.</p>
+      
+      <div class="completion-actions">
+        <button (click)="createAnotherTask()" class="primary-btn">
+          Add Another Task
+        </button>
+        <button (click)="redirectToLogin()" class="secondary-btn">
+          Back to Dashboard
+        </button>
       </div>
     </div>
   </div>

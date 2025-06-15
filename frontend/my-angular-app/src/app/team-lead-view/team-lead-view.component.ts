@@ -3,18 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TeamLeadService } from '../services/team-lead.service';
 
-interface Project {
-  id: number;
-  name: string;
-}
-
-interface Task {
-  id: number;
-  name: string;
-  skillSet: string[];
-  status: string;
-}
-
 @Component({
   selector: 'app-team-lead-view',
   standalone: true,
@@ -23,138 +11,135 @@ interface Task {
   imports: [CommonModule, FormsModule]
 })
 export class TeamLeadViewComponent implements OnInit {
-  projects: Project[] = [];
-  tasks: Task[] = [];
-
-  newProjectName = '';
-  newTaskName = '';
-  newTaskSkills = '';
-
-  showCreateForm = false;
-  showTaskForm = false;
-  showDropdown = false;
+  // Form data
+  projectName = '';
+  taskName = '';
+  skills = '';
+  
+  // UI state
+  currentStep = 'project'; // 'project', 'task', 'complete'
+  isLoading = false;
   errorMessage = '';
+  successMessage = '';
+  hasExistingProject = false;
 
   constructor(private teamLeadService: TeamLeadService) {}
-  
+
   ngOnInit() {
-    // Check if user is logged in before making API calls
     if (!this.teamLeadService.isLoggedIn()) {
-      this.errorMessage = 'You are not logged in. Please log in to continue.';
+      this.errorMessage = 'Your session has expired. Please log in again.';
       return;
     }
     
-    this.loadProjects();
-    this.loadTasks();
+    this.checkExistingProject();
   }
 
-  toggleDropdown() {
-    this.showDropdown = !this.showDropdown;
-  }  loadProjects() {
-    // Load team lead details to get project information
+  private checkExistingProject() {
+    this.isLoading = true;
     this.teamLeadService.getProjects().subscribe({
-      next: (teamLeadDetails) => {
-        if (teamLeadDetails.project) {
-          this.projects = [teamLeadDetails.project];
+      next: (response) => {
+        if (response && response.project) {
+          this.hasExistingProject = true;
+          this.currentStep = 'task';
         } else {
-          this.projects = [];
+          this.hasExistingProject = false;
+          this.currentStep = 'project';
         }
+        this.isLoading = false;
       },
-      error: () => this.errorMessage = 'Failed to load team lead details'
+      error: (error) => {
+        this.isLoading = false;
+        if (error.status === 401 || error.status === 403) {
+          this.errorMessage = 'Your session has expired. Please log in again.';
+        } else {
+          this.errorMessage = 'Failed to load project information.';
+        }
+      }
     });
   }
-  loadTasks() {
-    this.teamLeadService.getTasks().subscribe({
-      next: (res) => this.tasks = res,
-      error: () => this.errorMessage = 'Failed to load tasks'
-    });
-  }
-  checkOrCreateProject() {
-    // Since team lead can only have one project, check if they already have one
-    if (this.projects.length > 0) {
-      this.errorMessage = 'You already have a project! Team leads can only create one project.';
-      return;
-    }
 
-    if (!this.newProjectName.trim()) {
+  onProjectSubmit() {
+    if (!this.projectName.trim()) {
       this.errorMessage = 'Please enter a project name.';
       return;
     }
 
-    this.errorMessage = '';
-    this.showTaskForm = true;
-  }submitProjectAndTask() {
-    const projectName = this.newProjectName.trim();
-    const taskName = this.newTaskName.trim();
-    const skillSet = this.newTaskSkills.split(',').map(s => s.trim());    // Debug: Check token
-    const token = this.teamLeadService.getToken();
-    console.log('Token exists:', !!token);
-    console.log('Token preview:', token?.substring(0, 50) + '...');
-    console.log('Creating project with name:', projectName);
+    this.clearMessages();
+    this.isLoading = true;
 
-    // First try with Bearer prefix
-    this.teamLeadService.createProject(projectName).subscribe({
+    this.teamLeadService.createProject(this.projectName.trim()).subscribe({
       next: (response) => {
-        console.log('Project created successfully:', response);
-        this.createTaskAfterProject(taskName, skillSet);
-      },      error: (projectError) => {
-        console.error('Project creation error with Bearer:', projectError);
-        console.error('Error details:', {
-          status: projectError.status,
-          message: projectError.error,
-          url: projectError.url
-        });
-        
-        // Try to get more specific error message
-        let errorMsg = 'Failed to create project';
-        // Custom error for already existing project
-        if (projectError.status === 500 && this.projects.length > 0) {
-          errorMsg = 'You already have a project! Team leads can only create one project.';
-        } else if (projectError.error && typeof projectError.error === 'string') {
-          errorMsg += ': ' + projectError.error;
-        } else if (projectError.error && projectError.error.message) {
-          errorMsg += ': ' + projectError.error.message;
-        } else if (projectError.message) {
-          errorMsg += ': ' + projectError.message;
-        }
-        
-        this.errorMessage = errorMsg;
+        this.hasExistingProject = true;
+        this.currentStep = 'task';
+        this.isLoading = false;
+        this.successMessage = 'Project created! Now add a task.';
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.handleError(error, 'Failed to create project');
       }
     });
   }
 
-  private createTaskAfterProject(taskName: string, skillSet: string[]) {
-    this.teamLeadService.createTask(taskName, skillSet).subscribe({
-      next: (taskResponse) => {
-        console.log('Task created successfully:', taskResponse);
-        this.resetForm();
-        // Reload data from backend after successful creation
-        this.loadProjects();
-        this.loadTasks();
+  onTaskSubmit() {
+    if (!this.taskName.trim()) {
+      this.errorMessage = 'Please enter a task name.';
+      return;
+    }
+
+    if (!this.skills.trim()) {
+      this.errorMessage = 'Please enter at least one skill.';
+      return;
+    }
+
+    const skillSet = this.skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    
+    if (skillSet.length === 0) {
+      this.errorMessage = 'Please enter valid skills separated by commas.';
+      return;
+    }
+
+    this.clearMessages();
+    this.isLoading = true;
+
+    this.teamLeadService.createTask(this.taskName.trim(), skillSet).subscribe({
+      next: (response) => {
+        this.currentStep = 'complete';
+        this.isLoading = false;
+        this.successMessage = 'Task created successfully!';
       },
-      error: (taskError) => {
-        console.error('Task creation error:', taskError);
-        this.errorMessage = 'Project created but failed to create task: ' + (taskError.error?.message || taskError.message);
-        // Still reload to show the created project
-        this.loadProjects();
-        this.loadTasks();
+      error: (error) => {
+        this.isLoading = false;
+        this.handleError(error, 'Failed to create task');
       }
-    });
-  }  assignTask(taskId: number) {
-    this.teamLeadService.assignTask(taskId).subscribe({
-      next: () => {
-        // Reload tasks to get updated status
-        this.loadTasks();
-      },
-      error: () => this.errorMessage = 'Failed to assign task'
     });
   }
 
-  resetForm() {
-    this.newProjectName = '';
-    this.newTaskName = '';
-    this.newTaskSkills = '';
-    this.showTaskForm = false;
-    this.showCreateForm = false;
+  createAnotherTask() {
+    this.taskName = '';
+    this.skills = '';
+    this.currentStep = 'task';
+    this.clearMessages();
+  }
+
+  private handleError(error: any, defaultMessage: string) {
+    if (error.status === 401 || error.status === 403) {
+      this.errorMessage = 'Your session has expired. Please log in again.';
+    } else if (error.status === 500 && error.error?.includes('already')) {
+      this.errorMessage = 'You already have a project. You can only add tasks.';
+      this.hasExistingProject = true;
+      this.currentStep = 'task';
+    } else {
+      this.errorMessage = error.error?.message || defaultMessage;
+    }
+  }
+
+  private clearMessages() {
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  redirectToLogin() {
+    window.location.href = '/';
   }
 }
