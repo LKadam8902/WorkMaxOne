@@ -9,9 +9,8 @@ export class UserService {
   private apiUrl = 'http://localhost:8000';
 
   constructor(private http: HttpClient) { }
-
   private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('adminToken');
+    const token = localStorage.getItem('token');
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -42,7 +41,6 @@ export class UserService {
     };
     console.log('Team lead login request:', loginData);
     return this.http.post(`${this.apiUrl}/auth/teamLead/login`, loginData);  }
-
   benchedEmployeeLogin(email: string, password: string): Observable<any> {
     const loginData = {
       useremail: email,

@@ -20,33 +20,79 @@ export class SignInAccountComponent {
   constructor(
     private router: Router,
     private userService: UserService
-  ) {}  onSubmit() {
+  ) {}
+
+  onSubmit() {
     console.log('Login attempt with:', this.email, this.password);
     this.errorMessage = '';
     
-    // Try team lead login first
+    // Try benched employee login first
+    this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
+      next: (response) => {
+        console.log('Benched employee login successful:', response);
+        const role = this.extractRoleFromToken(response.jwt);
+        console.log('Extracted role from token:', role);
+        
+        localStorage.setItem('token', response.jwt);
+        
+        if (role === 'BENCHED_EMPLOYEE') {
+          this.router.navigate(['/benched-employee-view']);
+        } else {
+          // If role is not benched employee, try team lead login instead
+          this.tryTeamLeadLogin();
+          return;
+        }
+      },
+      error: (benchedError) => {
+        console.log('Benched employee login failed:', benchedError);
+        // If benched employee login fails, try team lead login
+        this.tryTeamLeadLogin();
+      }
+    });
+  }
+
+  private tryTeamLeadLogin() {
     this.userService.teamLeadLogin(this.email, this.password).subscribe({
       next: (response) => {
         console.log('Team lead login successful:', response);
+        const role = this.extractRoleFromToken(response.jwt);
+        console.log('Extracted role from token:', role);
+        
         localStorage.setItem('token', response.jwt);
-        this.router.navigate(['/team-lead-view']);
+        
+        if (role === 'TEAM_LEAD') {
+          this.router.navigate(['/team-lead-view']);
+        } else {
+          // Fallback to team lead view
+          this.router.navigate(['/team-lead-view']);
+        }
       },
       error: (teamLeadError) => {
-        console.log('Team lead login failed:', teamLeadError);
-        // If team lead login fails, try benched employee login
-        this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
-          next: (response) => {
-            console.log('Benched employee login successful:', response);
-            localStorage.setItem('token', response.jwt);
-            this.router.navigate(['/benched-employee-view']);
-          },
-          error: (benchedError) => {
-            console.log('Benched employee login failed:', benchedError);
-            this.errorMessage = 'Invalid email or password';
-          }
-        });
+        console.log('Team lead login also failed:', teamLeadError);
+        if (teamLeadError.error && teamLeadError.error.messagge) {
+          this.errorMessage = teamLeadError.error.messagge;
+        } else if (teamLeadError.error && teamLeadError.error.message) {
+          this.errorMessage = teamLeadError.error.message;
+        } else {
+          this.errorMessage = 'Invalid email or password';
+        }
       }
     });
+  }
+
+  private extractRoleFromToken(token: string): string | null {
+    try {
+      // JWT has 3 parts separated by dots: header.payload.signature
+      const payload = token.split('.')[1];
+      // Decode base64 payload
+      const decodedPayload = atob(payload);
+      const parsedPayload = JSON.parse(decodedPayload);
+      console.log('JWT payload:', parsedPayload);
+      return parsedPayload.role || null;
+    } catch (error) {
+      console.error('Error extracting role from token:', error);
+      return null;
+    }
   }
 
   navigateToCreateAccount() {
