@@ -36,99 +36,115 @@ export class TeamLeadViewComponent implements OnInit {
   errorMessage = '';
 
   constructor(private teamLeadService: TeamLeadService) {}
+  
   ngOnInit() {
-    // Backend doesn't have GET endpoints for projects and tasks
-    // Starting with empty arrays and showing create form
-    this.projects = [];
-    this.tasks = [];
+    // Check if user is logged in before making API calls
+    if (!this.teamLeadService.isLoggedIn()) {
+      this.errorMessage = 'You are not logged in. Please log in to continue.';
+      return;
+    }
     
-    // Comment out the API calls since endpoints don't exist
-    // this.loadProjects();
-    // this.loadTasks();
+    this.loadProjects();
+    this.loadTasks();
   }
 
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
-  }
-  loadProjects() {
-    // Backend doesn't have GET /teamLead/projects endpoint
-    // Commenting out this call to prevent 404 errors
-    /*
+  }  loadProjects() {
+    // Load team lead details to get project information
     this.teamLeadService.getProjects().subscribe({
-      next: (res) => this.projects = res,
-      error: () => this.errorMessage = 'Failed to load projects'
+      next: (teamLeadDetails) => {
+        if (teamLeadDetails.project) {
+          this.projects = [teamLeadDetails.project];
+        } else {
+          this.projects = [];
+        }
+      },
+      error: () => this.errorMessage = 'Failed to load team lead details'
     });
-    */
   }
-
   loadTasks() {
-    // Backend doesn't have GET /teamLead/tasks endpoint  
-    // Commenting out this call to prevent 404 errors
-    /*
     this.teamLeadService.getTasks().subscribe({
       next: (res) => this.tasks = res,
       error: () => this.errorMessage = 'Failed to load tasks'
     });
-    */
   }
-
   checkOrCreateProject() {
-    const projectNameLower = this.newProjectName.trim().toLowerCase();
-    const exists = this.projects.some(p => p.name.toLowerCase() === projectNameLower);
+    // Since team lead can only have one project, check if they already have one
+    if (this.projects.length > 0) {
+      this.errorMessage = 'You already have a project! Team leads can only create one project.';
+      return;
+    }
 
-    if (exists) {
-      this.errorMessage = 'Project already exists!';
+    if (!this.newProjectName.trim()) {
+      this.errorMessage = 'Please enter a project name.';
       return;
     }
 
     this.errorMessage = '';
     this.showTaskForm = true;
-  }
-  submitProjectAndTask() {
-    const projectName = this.newProjectName.trim().toLowerCase();
-    const taskName = this.newTaskName.trim().toLowerCase();
-    const skillSet = this.newTaskSkills.split(',').map(s => s.trim().toLowerCase());
+  }submitProjectAndTask() {
+    const projectName = this.newProjectName.trim();
+    const taskName = this.newTaskName.trim();
+    const skillSet = this.newTaskSkills.split(',').map(s => s.trim());    // Debug: Check token
+    const token = this.teamLeadService.getToken();
+    console.log('Token exists:', !!token);
+    console.log('Token preview:', token?.substring(0, 50) + '...');
+    console.log('Creating project with name:', projectName);
 
+    // First try with Bearer prefix
     this.teamLeadService.createProject(projectName).subscribe({
-      next: () => {
-        // Add the project to local array since we can't fetch from API
-        const newProject = {
-          id: this.projects.length + 1, // Simple ID generation
-          name: projectName
-        };
-        this.projects.push(newProject);
-
-        this.teamLeadService.createTask(taskName, skillSet).subscribe({
-          next: () => {
-            // Add the task to local array since we can't fetch from API
-            const newTask = {
-              id: this.tasks.length + 1, // Simple ID generation
-              name: taskName,
-              skillSet: skillSet,
-              status: 'Pending'
-            };
-            this.tasks.push(newTask);
-            
-            this.resetForm();
-            // Remove the API reload calls since endpoints don't exist
-            // this.loadProjects();
-            // this.loadTasks();
-          },
-          error: () => this.errorMessage = 'Failed to create task'
+      next: (response) => {
+        console.log('Project created successfully:', response);
+        this.createTaskAfterProject(taskName, skillSet);
+      },      error: (projectError) => {
+        console.error('Project creation error with Bearer:', projectError);
+        console.error('Error details:', {
+          status: projectError.status,
+          message: projectError.error,
+          url: projectError.url
         });
-      },
-      error: () => this.errorMessage = 'Failed to create project'
+        
+        // Try to get more specific error message
+        let errorMsg = 'Failed to create project';
+        // Custom error for already existing project
+        if (projectError.status === 500 && this.projects.length > 0) {
+          errorMsg = 'You already have a project! Team leads can only create one project.';
+        } else if (projectError.error && typeof projectError.error === 'string') {
+          errorMsg += ': ' + projectError.error;
+        } else if (projectError.error && projectError.error.message) {
+          errorMsg += ': ' + projectError.error.message;
+        } else if (projectError.message) {
+          errorMsg += ': ' + projectError.message;
+        }
+        
+        this.errorMessage = errorMsg;
+      }
     });
   }
-  assignTask(taskId: number) {
+
+  private createTaskAfterProject(taskName: string, skillSet: string[]) {
+    this.teamLeadService.createTask(taskName, skillSet).subscribe({
+      next: (taskResponse) => {
+        console.log('Task created successfully:', taskResponse);
+        this.resetForm();
+        // Reload data from backend after successful creation
+        this.loadProjects();
+        this.loadTasks();
+      },
+      error: (taskError) => {
+        console.error('Task creation error:', taskError);
+        this.errorMessage = 'Project created but failed to create task: ' + (taskError.error?.message || taskError.message);
+        // Still reload to show the created project
+        this.loadProjects();
+        this.loadTasks();
+      }
+    });
+  }  assignTask(taskId: number) {
     this.teamLeadService.assignTask(taskId).subscribe({
       next: () => {
-        // Update the task status locally instead of reloading from API
-        const task = this.tasks.find(t => t.id === taskId);
-        if (task) {
-          task.status = 'Assigned';
-        }
-        // this.loadTasks(); // Commented out since endpoint doesn't exist
+        // Reload tasks to get updated status
+        this.loadTasks();
       },
       error: () => this.errorMessage = 'Failed to assign task'
     });

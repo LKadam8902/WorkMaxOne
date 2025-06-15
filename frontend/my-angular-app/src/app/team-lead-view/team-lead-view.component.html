@@ -16,26 +16,27 @@
       </div>
     </div>
 
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-
-    <!-- Projects Section -->
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>    <!-- Projects Section -->
     <div class="section">
       <div class="section-title">Projects</div>
 
-      <div *ngIf="projects.length === 0 || showCreateForm">
+      <div *ngIf="projects.length === 0 && !showCreateForm">
         <div class="create-form">
           <input type="text" [(ngModel)]="newProjectName" placeholder="Project name" />
           <button (click)="checkOrCreateProject()" class="create-btn">Create Project</button>
         </div>
+      </div>
 
-        <div *ngIf="showTaskForm">
+      <div *ngIf="showTaskForm">
+        <div class="create-form">
           <input type="text" [(ngModel)]="newTaskName" placeholder="Task name" />
           <input type="text" [(ngModel)]="newTaskSkills" placeholder="Skills (comma-separated)" />
-          <button (click)="submitProjectAndTask()" class="create-btn">Submit</button>
+          <button (click)="submitProjectAndTask()" class="create-btn">Submit Project & Task</button>
+          <button (click)="resetForm()" class="cancel-btn">Cancel</button>
         </div>
       </div>
 
-      <div *ngIf="projects.length > 0 && !showCreateForm" class="table-container">
+      <div *ngIf="projects.length > 0" class="table-container">
         <table class="data-table">
           <thead>
             <tr>
