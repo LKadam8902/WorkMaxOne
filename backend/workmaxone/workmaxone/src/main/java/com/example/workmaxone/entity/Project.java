@@ -16,22 +16,20 @@ public class Project {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
-    private  TeamLead manager;
-
-    @OneToMany
-    @Column(name = "taskId")
-    private List<Task> taskId;
+    private  TeamLead manager;    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Task> taskList;
 
     //private List<String> techStack;
 
     //private List<Team> teamMembers;
 
-    public Project(){
-    }
+    private int noOfMembers;
 
-    public Project(String projectName, int noOfMembers, List<Task> taskList, List<String> techStack) {
+    public Project(){
+    }    public Project(String projectName, int noOfMembers, List<Task> taskList, List<String> techStack) {
         this.projectName = projectName;
-        this.taskId = taskList;
+        this.taskList = taskList;
+        this.noOfMembers = noOfMembers;
     }
 
     public int getProjectId() {
@@ -48,14 +46,12 @@ public class Project {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
-    }
-
-    public List<Task> getTaskList() {
-        return taskId;
+    }    public List<Task> getTaskList() {
+        return taskList;
     }
 
     public void setTaskList(List<Task> taskList) {
-        this.taskId = taskList;
+        this.taskList = taskList;
     }
 
     public TeamLead getManager() {
@@ -64,14 +60,12 @@ public class Project {
 
     public void setManager(TeamLead manager) {
         this.manager = manager;
+    }    public int getNoOfMembers() {
+        return noOfMembers;
     }
 
-    public List<Task> getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(List<Task> taskId) {
-        this.taskId = taskId;
+    public void setNoOfMembers(int noOfMembers) {
+        this.noOfMembers = noOfMembers;
     }
 
 

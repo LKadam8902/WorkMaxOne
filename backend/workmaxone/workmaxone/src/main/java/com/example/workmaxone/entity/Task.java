@@ -4,8 +4,6 @@ import com.example.workmaxone.entity.enums.Status;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Entity
 public class Task {
@@ -16,13 +14,13 @@ public class Task {
 
     private String name;
 
-    private List<String> skillSet;
+    private String skillSet;
 
     private Integer  assignedTo;
 
     private Integer assignedBy;
 
-
+    private Integer extraMemberReq; // Add the missing field
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
@@ -40,7 +38,7 @@ public class Task {
     }
 
 
-    public Task(String name, List<String> skillSet, int teamLeadId) {
+    public Task(String name, String skillSet, int teamLeadId) {
         this.name = name;
         this.skillSet = skillSet;
         this.assignedBy=teamLeadId;
@@ -62,11 +60,11 @@ public class Task {
         this.name = name;
     }
 
-    public List<String> getSkillSet() {
+    public String getSkillSet() {
         return skillSet;
     }
 
-    public void setSkillSet(List<String> skillSet) {
+    public void setSkillSet(String skillSet) {
         this.skillSet = skillSet;
     }
 
@@ -109,6 +107,14 @@ public class Task {
 
     public void setAssignedDate(LocalDateTime assignedDate) {
         this.assignedDate = assignedDate;
+    }
+
+    public Integer getExtraMemberReq() {
+        return extraMemberReq;
+    }
+
+    public void setExtraMemberReq(Integer extraMemberReq) {
+        this.extraMemberReq = extraMemberReq;
     }
 
 }

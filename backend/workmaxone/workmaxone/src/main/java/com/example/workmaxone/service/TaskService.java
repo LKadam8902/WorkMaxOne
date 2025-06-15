@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -43,24 +44,54 @@ public class TaskService {
     public List<Task> getAllTaskByAssignedBy(int assignedBy) {
         return taskRepository.findByAssignedBy(assignedBy);
     }
-
-
     public Task createTask(String name, List<String> skillSet, Integer assignedBy) {
         try {
-            Task task = new Task();
-            task.setName(name);
-            task.setSkillSet(skillSet);
-            task.setAssignedBy(assignedBy);
-            Optional<TeamLead> teamLead=teamLeadRepo.findById(assignedBy);
-            Project project=projectRepository.findByManager(teamLead);
-            if (project!=null) {
-                task.setProject(project);
-            } else {
-                throw new TaskException("Project with ID " + project.getProjectId() + " not found.");
+            // Validate input parameters
+            if (name == null || name.trim().isEmpty()) {
+                throw new TaskException("Task name cannot be null or empty");
             }
-            return taskRepository.save(task);
+            if (skillSet == null || skillSet.isEmpty()) {
+                throw new TaskException("SkillSet cannot be null or empty");
+            }
+            if (assignedBy == null) {
+                throw new TaskException("AssignedBy (Team Lead ID) cannot be null");
+            }
+
+            // Find team lead
+            Optional<TeamLead> teamLeadOpt = teamLeadRepo.findById(assignedBy);
+            if (teamLeadOpt.isEmpty()) {
+                throw new TaskException("Team lead not found with ID: " + assignedBy);
+            }
+            
+            TeamLead teamLead = teamLeadOpt.get();
+            
+            // Find project associated with team lead
+            Project project = projectRepository.findByManager(teamLead);
+            if (project == null) {
+                throw new TaskException("No project found for team lead: " + assignedBy + ". Please create a project first.");
+            }
+
+            // Create and configure task
+            Task task = new Task();
+            task.setName(name.trim());
+            task.setSkillSet(String.join(",", skillSet));
+            task.setAssignedBy(assignedBy);
+            task.setProject(project);
+            
+            // Save task
+            Task savedTask = taskRepository.save(task);
+            System.out.println("Task created successfully: ID=" + savedTask.getTaskId() + 
+                              ", Name=" + savedTask.getName() + 
+                              ", SkillSet=" + savedTask.getSkillSet() + 
+                              ", AssignedBy=" + savedTask.getAssignedBy());
+            return savedTask;
+            
+        } catch (TaskException e) {
+            // Re-throw TaskException as is
+            throw e;
         } catch (Exception e) {
-            throw new TaskException("Unable to create new task due to : " + e.getMessage());
+            e.printStackTrace();
+            throw new TaskException("Unable to create task due to unexpected error: " + e.getMessage());
         }
     }
 
@@ -99,7 +130,11 @@ public ResponseEntity<TaskAssignResponse> assignTask(int taskId, int teamLeadId)
                 HttpStatus.NOT_FOUND);
     }
     Task task = optionalTask;
-    List<String> taskSkillList = task.getSkillSet();
+    // Convert comma-separated skillSet string to List<String>
+    List<String> taskSkillList = new ArrayList<>();
+    if (task.getSkillSet() != null && !task.getSkillSet().isEmpty()) {
+        taskSkillList = Arrays.asList(task.getSkillSet().split(","));
+    }
 
 
     List<BenchedEmployee> benchedEmp = benchedEmployeeRepo.findByIsTaskAssignedFalse();

@@ -11,24 +11,17 @@ export class TeamLeadService {
   constructor(private http: HttpClient) { }
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
-    console.log('Token from localStorage:', token);
-    console.log('Token length:', token?.length);
-    
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     });
-    
-    console.log('Authorization header:', headers.get('Authorization'));
     return headers;
   }
 
   // Alternative method for testing without Bearer prefix
   private getAuthHeadersAlternative(): HttpHeaders {
     const token = localStorage.getItem('token');
-    console.log('Testing without Bearer prefix');
-    
     return new HttpHeaders({
       'Authorization': token || '',
       'Content-Type': 'application/json',
@@ -58,17 +51,12 @@ export class TeamLeadService {
   }
   createProject(name: string): Observable<any> {
     const body = { name };
-    console.log('Creating project with body:', body);
-    console.log('API URL:', `${this.apiUrl}/createProject`);
-    
     return this.http.post(`${this.apiUrl}/createProject`, body, { headers: this.getAuthHeaders() });
   }
 
   // Test method for project creation with alternative headers
   createProjectAlternative(name: string): Observable<any> {
     const body = { name };
-    console.log('Testing project creation with alternative headers');
-    
     return this.http.post(`${this.apiUrl}/createProject`, body, { headers: this.getAuthHeadersAlternative() });
   }
 

@@ -86,7 +86,7 @@ export class TeamLeadViewComponent implements OnInit {
   }submitProjectAndTask() {
     const projectName = this.newProjectName.trim();
     const taskName = this.newTaskName.trim();
-    const skillSet = this.newTaskSkills.split(',').map(s => s.trim());    // Debug: Check token
+    const skillSet = this.newTaskSkills.split(',').map(s => s.trim());
     const token = this.teamLeadService.getToken();
     console.log('Token exists:', !!token);
     console.log('Token preview:', token?.substring(0, 50) + '...');
@@ -95,7 +95,8 @@ export class TeamLeadViewComponent implements OnInit {
     // First try with Bearer prefix
     this.teamLeadService.createProject(projectName).subscribe({
       next: (response) => {
-        console.log('Project created successfully:', response);
+        this.errorMessage = 'Project created successfully!';
+        this.loadProjects();
         this.createTaskAfterProject(taskName, skillSet);
       },      error: (projectError) => {
         console.error('Project creation error with Bearer:', projectError);
@@ -107,9 +108,15 @@ export class TeamLeadViewComponent implements OnInit {
         
         // Try to get more specific error message
         let errorMsg = 'Failed to create project';
-        // Custom error for already existing project
-        if (projectError.status === 500 && this.projects.length > 0) {
-          errorMsg = 'You already have a project! Team leads can only create one project.';
+        if (
+          projectError.status === 409 &&
+          projectError.error &&
+          typeof projectError.error === 'string' &&
+          projectError.error.includes('Only one project per team lead is allowed')
+        ) {
+          errorMsg = 'You already have a project! Showing your project and tasks.';
+          this.loadProjects();
+          this.loadTasks();
         } else if (projectError.error && typeof projectError.error === 'string') {
           errorMsg += ': ' + projectError.error;
         } else if (projectError.error && projectError.error.message) {
@@ -117,7 +124,6 @@ export class TeamLeadViewComponent implements OnInit {
         } else if (projectError.message) {
           errorMsg += ': ' + projectError.message;
         }
-        
         this.errorMessage = errorMsg;
       }
     });
