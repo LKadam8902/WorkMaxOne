@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TeamLeadService } from '../services/team-lead.service';
 
 interface Project {
@@ -31,20 +32,26 @@ export class TeamLeadViewComponent implements OnInit {
   errorMessage: string = '';
   showDropdown = false;
 
-  constructor(private teamLeadService: TeamLeadService) {}
-
+  constructor(private teamLeadService: TeamLeadService, private router: Router) {}
   ngOnInit() {
+    console.log('TeamLeadViewComponent initialized');
+    console.log('Token in localStorage:', localStorage.getItem('token'));
     this.loadProjects();
     this.loadTasks();
   }
-
   loadProjects() {
     this.teamLeadService.getProjects().subscribe({
       next: (response) => {
         this.projects = response;
       },
       error: (error) => {
-        this.errorMessage = 'Failed to load projects';
+        if (error.status === 401) {
+          this.errorMessage = 'Authentication expired. Please login again.';
+          localStorage.removeItem('token');
+          this.router.navigate(['/sign-in']);
+        } else {
+          this.errorMessage = 'Failed to load projects';
+        }
       }
     });
   }
@@ -55,11 +62,16 @@ export class TeamLeadViewComponent implements OnInit {
         this.tasks = response;
       },
       error: (error) => {
-        this.errorMessage = 'Failed to load tasks';
+        if (error.status === 401) {
+          this.errorMessage = 'Authentication expired. Please login again.';
+          localStorage.removeItem('token');
+          this.router.navigate(['/sign-in']);
+        } else {
+          this.errorMessage = 'Failed to load tasks';
+        }
       }
     });
   }
-
   createProject() {
     if (!this.newProjectName) return;
     
@@ -67,9 +79,17 @@ export class TeamLeadViewComponent implements OnInit {
       next: () => {
         this.newProjectName = '';
         this.loadProjects();
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to create project';
+        this.errorMessage = '';
+      },      error: (error) => {
+        console.error('Create project error:', error);
+        if (error.status === 401) {
+          this.errorMessage = 'Authentication expired. Please login again.';
+          localStorage.removeItem('token');
+          this.router.navigate(['/sign-in']);
+        } else {
+          // Show the backend error message if available
+          this.errorMessage = error.error?.message || error.message || 'Failed to create project';
+        }
       }
     });
   }
@@ -84,9 +104,17 @@ export class TeamLeadViewComponent implements OnInit {
         this.newTaskName = '';
         this.newTaskSkills = '';
         this.loadTasks();
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to create task';
+        this.errorMessage = '';
+      },      error: (error) => {
+        console.error('Create task error:', error);
+        if (error.status === 401) {
+          this.errorMessage = 'Authentication expired. Please login again.';
+          localStorage.removeItem('token');
+          this.router.navigate(['/sign-in']);
+        } else {
+          // Show the backend error message if available
+          this.errorMessage = error.error?.message || error.message || 'Failed to create task';
+        }
       }
     });
   }
@@ -95,9 +123,9 @@ export class TeamLeadViewComponent implements OnInit {
     this.teamLeadService.assignTask(taskId).subscribe({
       next: () => {
         this.loadTasks();
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to assign task';
+      },      error: (error) => {
+        console.error('Assign task error:', error);
+        this.errorMessage = error.error?.message || error.message || 'Failed to assign task';
       }
     });
   }

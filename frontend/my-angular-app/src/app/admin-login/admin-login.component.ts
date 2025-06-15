@@ -20,15 +20,18 @@ export class AdminLoginComponent {
   constructor(
     private adminService: AdminService,
     private router: Router
-  ) {}
-
-  onSubmit() {
+  ) {}  onSubmit() {
     this.adminService.login(this.email, this.password).subscribe({
       next: (response) => {
-        // Store the token in localStorage
-        localStorage.setItem('adminToken', response.accessToken);
-        // Navigate to admin view
-        this.router.navigate(['/admin-view']);
+        // Store the token in localStorage - handle both accessToken and jwt field names
+        const token = response.accessToken || response.jwt;
+        if (token) {
+          localStorage.setItem('token', token);
+          // Navigate to admin view
+          this.router.navigate(['/admin-view']);
+        } else {
+          this.errorMessage = 'Login failed - no access token received';
+        }
       },
       error: (error) => {
         this.errorMessage = error.error.message || 'Login failed. Please try again.';

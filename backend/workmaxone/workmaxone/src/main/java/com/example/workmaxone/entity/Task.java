@@ -1,11 +1,11 @@
 package com.example.workmaxone.entity;
 
 import com.example.workmaxone.entity.enums.Status;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Entity
 public class Task {
@@ -18,25 +18,22 @@ public class Task {
 
     private List<String> skillSet;
 
-    private Integer  assignedTo;
+    private Integer  assignedTo;    private Integer assignedBy;
 
-    private Integer assignedBy;
-
-
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "extra_member_req")
+    private Integer extraMemberReq;    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
+    @JsonBackReference
     private Project project;
 
     private String status;
 
 
 
-    private LocalDateTime assignedDate;
-
-    public Task(){
+    private LocalDateTime assignedDate;    public Task(){
         assignedTo=null;
         status= Status.TO_DO.toString();
+        extraMemberReq=0; // Set default value
     }
 
 
@@ -109,6 +106,14 @@ public class Task {
 
     public void setAssignedDate(LocalDateTime assignedDate) {
         this.assignedDate = assignedDate;
+    }
+
+    public Integer getExtraMemberReq() {
+        return extraMemberReq;
+    }
+
+    public void setExtraMemberReq(Integer extraMemberReq) {
+        this.extraMemberReq = extraMemberReq;
     }
 
 }

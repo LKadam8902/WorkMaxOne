@@ -36,23 +36,34 @@ public class ProjectService {
         }else{
             return project;
         }
-    }
-
-    public void saveProject(Integer teamLeadId,String projectName){
+    }    public void saveProject(Integer teamLeadId,String projectName){
        try {
+           Optional<TeamLead> teamLeadOpt=teamLeadRepository.findById(teamLeadId);
+           if (!teamLeadOpt.isPresent()){
+               throw new ProjectException("Unable to find team lead: " + teamLeadId);
+           }
+           
+           TeamLead teamLead = teamLeadOpt.get();
+           
+           // Check if team lead already has a project
+           if (teamLead.getProject() != null) {
+               // Update existing project name instead of creating a new one
+               Project existingProject = teamLead.getProject();
+               existingProject.setProjectName(projectName);
+               projectRepository.save(existingProject);
+               return;
+           }
+           
            Project project = new Project();
            project.setProjectName(projectName);
-           Optional<TeamLead> teamLead=teamLeadRepository.findById(teamLeadId);
-           if (teamLead.get()==null){
-               throw new ProjectException("enable to find team lead :"+teamLeadId);
-           }else {
-               project.setManager(teamLead.get());
-          }
-           projectRepository.save(project);
-           teamLead.get().setProject(project);
-           teamLeadRepository.save(teamLead.get());
+           project.setNoOfMembers(0); // Set default value for no_of_members
+           project.setManager(teamLead);
+           
+           Project savedProject = projectRepository.save(project);
+           teamLead.setProject(savedProject);
+           teamLeadRepository.save(teamLead);
        }catch(Exception e){
-           throw new ProjectException("Enable to add project due to this error :"+e.getMessage());
+           throw new ProjectException("Unable to add project due to this error: "+e.getMessage());
        }
     }
 

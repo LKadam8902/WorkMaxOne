@@ -1,5 +1,6 @@
 package com.example.workmaxone.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,9 +18,8 @@ public class TeamLead extends Employee {
     }
     public TeamLead(){
         
-    }
-
-    @OneToOne
+    }    @OneToOne
+    @JsonManagedReference
     private Project project;
 
 

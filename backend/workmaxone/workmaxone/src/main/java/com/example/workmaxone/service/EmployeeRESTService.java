@@ -37,30 +37,50 @@ public class EmployeeRESTService {
 
     public EmployeeRESTService(PasswordEncoder encoder) {
         this.encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
-
-    public Optional<Employee> getAuthenticatedBenchedEmployee(String useremail, String password) {
-        var benchedEmpInDb = employeeRepo.findByEmail(useremail);
-        if (benchedEmpInDb.isEmpty()) {
-            System.out.println("Couldn't find this Benched Employee in DB");
+    }    public Optional<Employee> getAuthenticatedBenchedEmployee(String useremail, String password) {
+        var employeeInDb = employeeRepo.findByEmail(useremail);
+        if (employeeInDb.isEmpty()) {
+            System.out.println("Couldn't find employee with email: " + useremail);
             return Optional.empty();
         }
-        if (encoder.matches(password, benchedEmpInDb.get().getpassword())) {
-            return benchedEmpInDb;
+        
+        Employee employee = employeeInDb.get();
+        
+        // Check if it's actually a BenchedEmployee
+        if (!(employee instanceof BenchedEmployee)) {
+            System.out.println("Employee is not a BenchedEmployee: " + useremail);
+            return Optional.empty();
+        }
+        
+        if (encoder.matches(password, employee.getpassword())) {
+            System.out.println("BenchedEmployee authentication successful: " + useremail);
+            return employeeInDb;
         } else {
+            System.out.println("Password mismatch for BenchedEmployee: " + useremail);
             return Optional.empty();
         }
     }
 
     public Optional<Employee> getAuthenticatedTeamLead(String useremail, String password) {
-        var teamLeadInDb = employeeRepo.findByEmail(useremail);
-        if (teamLeadInDb.isEmpty()) {
-            System.out.println("Couldn't find this Benched Employee in DB");
+        var employeeInDb = employeeRepo.findByEmail(useremail);
+        if (employeeInDb.isEmpty()) {
+            System.out.println("Couldn't find employee with email: " + useremail);
             return Optional.empty();
         }
-        if (encoder.matches(password, teamLeadInDb.get().getpassword())) {
-            return teamLeadInDb;
+        
+        Employee employee = employeeInDb.get();
+        
+        // Check if it's actually a TeamLead
+        if (!(employee instanceof TeamLead)) {
+            System.out.println("Employee is not a TeamLead: " + useremail);
+            return Optional.empty();
+        }
+        
+        if (encoder.matches(password, employee.getpassword())) {
+            System.out.println("TeamLead authentication successful: " + useremail);
+            return employeeInDb;
         } else {
+            System.out.println("Password mismatch for TeamLead: " + useremail);
             return Optional.empty();
         }
     }

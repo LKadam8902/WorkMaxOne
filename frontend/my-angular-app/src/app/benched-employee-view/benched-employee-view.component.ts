@@ -23,6 +23,22 @@ export class BenchedEmployeeViewComponent implements OnInit {
   errorMessage: string = '';
   showDropdown = false;
 
+  // For drag-and-drop
+  draggedTask!: Task;
+
+  // Computed properties for filtered tasks
+  get todoTasks(): Task[] {
+    return this.tasks.filter(task => task.status === 'To Do');
+  }
+
+  get inProgressTasks(): Task[] {
+    return this.tasks.filter(task => task.status === 'In Progress');
+  }
+
+  get completedTasks(): Task[] {
+    return this.tasks.filter(task => task.status === 'Completed');
+  }
+
   constructor(private benchedEmployeeService: BenchedEmployeeService) {}
 
   ngOnInit() {
@@ -34,23 +50,23 @@ export class BenchedEmployeeViewComponent implements OnInit {
       next: (response) => {
         this.tasks = response;
       },
-      error: (error) => {
+      error: () => {
         this.errorMessage = 'Failed to load tasks';
       }
     });
   }
 
   addSkills() {
-    if (!this.newSkills) return;
-    
+    if (!this.newSkills.trim()) return;
+
     const skillSet = this.newSkills.split(',').map(skill => skill.trim());
-    
+
     this.benchedEmployeeService.addSkills(skillSet).subscribe({
       next: () => {
         this.newSkills = '';
         this.loadTasks();
       },
-      error: (error) => {
+      error: () => {
         this.errorMessage = 'Failed to add skills';
       }
     });
@@ -61,7 +77,7 @@ export class BenchedEmployeeViewComponent implements OnInit {
       next: () => {
         this.loadTasks();
       },
-      error: (error) => {
+      error: () => {
         this.errorMessage = 'Failed to update task status';
       }
     });
@@ -70,4 +86,22 @@ export class BenchedEmployeeViewComponent implements OnInit {
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
   }
-} 
+
+  // Drag-and-drop logic
+  onDragStart(event: DragEvent, task: Task) {
+    this.draggedTask = task;
+    event.dataTransfer?.setData('text/plain', task.id.toString());
+  }
+
+  allowDrop(event: DragEvent) {
+    event.preventDefault();
+  }
+
+  onDrop(event: DragEvent, newStatus: string) {
+    event.preventDefault();
+
+    if (this.draggedTask && this.draggedTask.status !== newStatus) {
+      this.updateTaskStatus(this.draggedTask.id, newStatus);
+    }
+  }
+}

@@ -1,7 +1,6 @@
 package com.example.workmaxone.service;
 
 import com.example.workmaxone.DTO.TaskAssignResponse;
-import com.example.workmaxone.DTO.TaskResponse;
 import com.example.workmaxone.entity.BenchedEmployee;
 import com.example.workmaxone.entity.Project;
 import com.example.workmaxone.entity.Task;
@@ -42,20 +41,23 @@ public class TaskService {
 
     public Iterable<Task> getAllTask() {
         return taskRepository.findAll();
-    }
-
-    public Task createTask(String name, List<String> skillSet, Integer assignedBy) {
+    }    public Task createTask(String name, List<String> skillSet, Integer assignedBy) {
         try {
             Task task = new Task();
             task.setName(name);
             task.setSkillSet(skillSet);
             task.setAssignedBy(assignedBy);
-            Optional<TeamLead> teamLead=teamLeadRepo.findById(assignedBy);
-            Project project=projectRepository.findByManager(teamLead);
-            if (project!=null) {
-                task.setProject(project);
+            Optional<TeamLead> teamLeadOpt = teamLeadRepo.findById(assignedBy);
+            if (teamLeadOpt.isPresent()) {
+                TeamLead teamLead = teamLeadOpt.get();
+                Project project = projectRepository.findByManager(teamLead);
+                if (project != null) {
+                    task.setProject(project);
+                } else {
+                    throw new TaskException("No project found for team lead with ID " + assignedBy);
+                }
             } else {
-                throw new TaskException("Project with ID " + project.getProjectId() + " not found.");
+                throw new TaskException("Team lead with ID " + assignedBy + " not found.");
             }
             return taskRepository.save(task);
         } catch (Exception e) {

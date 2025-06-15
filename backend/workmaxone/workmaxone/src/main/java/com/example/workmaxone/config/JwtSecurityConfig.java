@@ -11,14 +11,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import com.example.workmaxone.service.JWTservice;
@@ -66,19 +65,9 @@ public class JwtSecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable());
         return http.build();
-    }
-
-    private JwtDecoder myJwtDecoder() {
-
-        if (!(jwtService.getPublicKey() instanceof RSAPublicKey)) {
-            System.out.println("Hello from inside myJWTDecoder from security config: Public Key is NOT RSAPublicKey or null!");
-
-            throw new IllegalStateException("JWT Public Key not properly configured as RSAPublicKey. Cannot create JwtDecoder.");
-        } else {
-            var asRSAKey = (RSAPublicKey) jwtService.getPublicKey();
-            System.out.println("Public Key loaded: " + asRSAKey);
-            return NimbusJwtDecoder.withPublicKey(asRSAKey).signatureAlgorithm(SignatureAlgorithm.RS512).build();
-        }
+    }    private JwtDecoder myJwtDecoder() {
+        System.out.println("Setting up JWT decoder with HMAC signing key");
+        return NimbusJwtDecoder.withSecretKey(jwtService.getSigningKey()).macAlgorithm(MacAlgorithm.HS512).build();
     }
 
     private JwtAuthenticationConverter myJwtAuthenticationConverter() {
@@ -99,14 +88,14 @@ public class JwtSecurityConfig {
             return grantedAuthorities;
         });
         return jwtAuthenticationConverter;
-    }
-
-    @Bean
+    }    @Bean
     public UrlBasedCorsConfigurationSource myCorsConfig() {
         var config = new CorsConfiguration();
         config.addAllowedOrigin("http://localhost:4200");
         config.addAllowedOrigin("http://127.0.0.1:4200");
         config.setAllowedMethods(List.of("GET", "PUT", "POST", "OPTIONS", "DELETE"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
         config.addExposedHeader("Token-Status");
         var src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", config);

@@ -1,5 +1,7 @@
 package com.example.workmaxone.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -10,16 +12,14 @@ public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int projectId;
+    private int projectId;    private String projectName;
 
-    private String projectName;
-
-    @OneToOne(fetch = FetchType.LAZY)
+    @Column(name = "no_of_members")
+    private Integer noOfMembers;    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
-    private  TeamLead manager;
-
-    @OneToMany
-    @Column(name = "taskId")
+    @JsonBackReference
+    private  TeamLead manager;    @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Task> taskId;
 
     //private List<String> techStack;
@@ -60,10 +60,8 @@ public class Project {
 
     public TeamLead getManager() {
         return manager;
-    }
-
-    public void setManager(TeamLead manager) {
-        manager = manager;
+    }    public void setManager(TeamLead manager) {
+        this.manager = manager;
     }
 
     public List<Task> getTaskId() {
@@ -72,6 +70,14 @@ public class Project {
 
     public void setTaskId(List<Task> taskId) {
         this.taskId = taskId;
+    }
+
+    public Integer getNoOfMembers() {
+        return noOfMembers;
+    }
+
+    public void setNoOfMembers(Integer noOfMembers) {
+        this.noOfMembers = noOfMembers;
     }
 
 
