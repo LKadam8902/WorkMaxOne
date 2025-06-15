@@ -145,6 +145,26 @@ export class TeamLeadService {
   assignTask(taskId: number): Observable<any> {
     return this.http.put(`${this.apiUrl}/assignTask/${taskId}`, {}, { headers: this.getAuthHeaders() });
   }
+
+  updateProfile(profileData: any): Observable<any> {
+    console.log('TeamLeadService.updateProfile() called with:', profileData);
+    console.log('API URL:', `${this.apiUrl}/updateProfile`);
+    console.log('Auth headers:', this.getAuthHeaders());
+    
+    return this.http.put(`${this.apiUrl}/updateProfile`, profileData, { headers: this.getAuthHeaders() }).pipe(
+      map((response: any) => {
+        console.log('updateProfile - Success response:', response);
+        return response;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('updateProfile - Error:', error);
+        console.error('updateProfile - Error status:', error.status);
+        console.error('updateProfile - Error body:', error.error);
+        throw error;
+      })
+    );
+  }
+
   // Helper method to extract tasks from malformed JSON
   private extractTasksFromMalformedJson(malformedJson: string): any[] {
     console.log('extractTasksFromMalformedJson - Input:', malformedJson);

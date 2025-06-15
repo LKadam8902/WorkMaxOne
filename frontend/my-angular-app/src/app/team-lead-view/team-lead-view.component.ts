@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TeamLeadService } from '../services/team-lead.service';
@@ -28,10 +28,24 @@ export class TeamLeadViewComponent implements OnInit {
   isLoadingTasks = false;
   showSidebar = true;
 
-  constructor(private teamLeadService: TeamLeadService) {
+  // Profile dropdown
+  showProfileDropdown = false;
+  profileData: any = null;
+
+  // Edit profile modal
+  showEditProfileModal = false;
+  editProfileData: any = {
+    employeeName: '',
+    email: '',
+    password: ''
+  };
+  isUpdatingProfile = false;
+  profileUpdateError = '';
+  profileUpdateSuccess = '';
+
+  constructor(private teamLeadService: TeamLeadService, private elementRef: ElementRef) {
     console.log('TeamLeadViewComponent initialized');
-  }
-  ngOnInit() {
+  }  ngOnInit() {
     if (!this.teamLeadService.isLoggedIn()) {
       this.errorMessage = 'Your session has expired. Please log in again.';
       return;
@@ -40,11 +54,14 @@ export class TeamLeadViewComponent implements OnInit {
     this.checkExistingProject();
     this.loadTasks();
   }
-
   private checkExistingProject() {
     this.isLoading = true;
     this.teamLeadService.getProjects().subscribe({
       next: (response) => {
+        // Store profile data
+        this.profileData = response;
+        console.log('Profile data loaded:', this.profileData);
+        
         if (response && response.project) {
           this.hasExistingProject = true;
           this.currentStep = 'task';
@@ -120,8 +137,7 @@ export class TeamLeadViewComponent implements OnInit {
           console.error('Other error loading tasks');
         }
       }
-    });
-  }
+    });  }
 
   onProjectSubmit() {
     if (!this.projectName.trim()) {
@@ -228,6 +244,91 @@ export class TeamLeadViewComponent implements OnInit {
   closeSidebar() {
     console.log('closeSidebar called');
     this.showSidebar = false;
+  }  // Profile dropdown methods
+  toggleProfileDropdown() {
+    this.showProfileDropdown = !this.showProfileDropdown;
+  }
+
+  closeProfileDropdown() {
+    this.showProfileDropdown = false;
+  }
+
+  openEditProfile() {
+    // Pre-populate the edit form with current profile data
+    if (this.profileData) {
+      this.editProfileData = {
+        employeeName: this.profileData.employeeName || '',
+        email: this.profileData.email || '',
+        password: '' // Always start with empty password
+      };
+    }
+    this.showEditProfileModal = true;
+    this.showProfileDropdown = false; // Close the dropdown
+    this.profileUpdateError = '';
+    this.profileUpdateSuccess = '';
+  }
+
+  closeEditProfile() {
+    this.showEditProfileModal = false;
+    this.profileUpdateError = '';
+    this.profileUpdateSuccess = '';
+  }
+
+  updateProfile() {
+    if (!this.editProfileData.employeeName.trim() || !this.editProfileData.email.trim()) {
+      this.profileUpdateError = 'Name and email are required.';
+      return;
+    }
+
+    this.isUpdatingProfile = true;
+    this.profileUpdateError = '';
+    this.profileUpdateSuccess = '';
+
+    // Prepare update data - only include password if it's provided
+    const updateData: any = {
+      employeeName: this.editProfileData.employeeName.trim(),
+      email: this.editProfileData.email.trim()
+    };
+
+    if (this.editProfileData.password && this.editProfileData.password.trim()) {
+      updateData.password = this.editProfileData.password.trim();
+    }
+
+    this.teamLeadService.updateProfile(updateData).subscribe({
+      next: (response) => {
+        this.isUpdatingProfile = false;
+        this.profileUpdateSuccess = 'Profile updated successfully!';
+        
+        // Update the local profile data
+        this.profileData = { ...this.profileData, ...updateData };
+        
+        // Close modal after a short delay
+        setTimeout(() => {
+          this.closeEditProfile();
+        }, 1500);
+      },
+      error: (error) => {
+        this.isUpdatingProfile = false;
+        console.error('Profile update error:', error);
+        this.profileUpdateError = error?.error?.message || 'Failed to update profile. Please try again.';
+      }
+    });
+  }
+
+  logout() {
+    this.teamLeadService.clearToken();
+    this.redirectToLogin();
+  }
+
+  // Host listener for clicking outside dropdown
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
+    const dropdown = this.elementRef.nativeElement.querySelector('.profile-dropdown');
+    
+    if (dropdown && !dropdown.contains(target)) {
+      this.showProfileDropdown = false;
+    }
   }
 
   // Track function for ngFor to handle complex objects
