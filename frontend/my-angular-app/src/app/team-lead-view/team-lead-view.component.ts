@@ -25,84 +25,120 @@ interface Task {
 export class TeamLeadViewComponent implements OnInit {
   projects: Project[] = [];
   tasks: Task[] = [];
-  newProjectName: string = '';
-  newTaskName: string = '';
-  newTaskSkills: string = '';
-  errorMessage: string = '';
+
+  newProjectName = '';
+  newTaskName = '';
+  newTaskSkills = '';
+
+  showCreateForm = false;
+  showTaskForm = false;
   showDropdown = false;
+  errorMessage = '';
 
   constructor(private teamLeadService: TeamLeadService) {}
-
   ngOnInit() {
-    this.loadProjects();
-    this.loadTasks();
-  }
-
-  loadProjects() {
-    this.teamLeadService.getProjects().subscribe({
-      next: (response) => {
-        this.projects = response;
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to load projects';
-      }
-    });
-  }
-
-  loadTasks() {
-    this.teamLeadService.getTasks().subscribe({
-      next: (response) => {
-        this.tasks = response;
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to load tasks';
-      }
-    });
-  }
-
-  createProject() {
-    if (!this.newProjectName) return;
+    // Backend doesn't have GET endpoints for projects and tasks
+    // Starting with empty arrays and showing create form
+    this.projects = [];
+    this.tasks = [];
     
-    this.teamLeadService.createProject(this.newProjectName).subscribe({
-      next: () => {
-        this.newProjectName = '';
-        this.loadProjects();
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to create project';
-      }
-    });
-  }
-
-  createTask() {
-    if (!this.newTaskName || !this.newTaskSkills) return;
-    
-    const skillSet = this.newTaskSkills.split(',').map(skill => skill.trim());
-    
-    this.teamLeadService.createTask(this.newTaskName, skillSet).subscribe({
-      next: () => {
-        this.newTaskName = '';
-        this.newTaskSkills = '';
-        this.loadTasks();
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to create task';
-      }
-    });
-  }
-
-  assignTask(taskId: number) {
-    this.teamLeadService.assignTask(taskId).subscribe({
-      next: () => {
-        this.loadTasks();
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to assign task';
-      }
-    });
+    // Comment out the API calls since endpoints don't exist
+    // this.loadProjects();
+    // this.loadTasks();
   }
 
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
   }
-} 
+  loadProjects() {
+    // Backend doesn't have GET /teamLead/projects endpoint
+    // Commenting out this call to prevent 404 errors
+    /*
+    this.teamLeadService.getProjects().subscribe({
+      next: (res) => this.projects = res,
+      error: () => this.errorMessage = 'Failed to load projects'
+    });
+    */
+  }
+
+  loadTasks() {
+    // Backend doesn't have GET /teamLead/tasks endpoint  
+    // Commenting out this call to prevent 404 errors
+    /*
+    this.teamLeadService.getTasks().subscribe({
+      next: (res) => this.tasks = res,
+      error: () => this.errorMessage = 'Failed to load tasks'
+    });
+    */
+  }
+
+  checkOrCreateProject() {
+    const projectNameLower = this.newProjectName.trim().toLowerCase();
+    const exists = this.projects.some(p => p.name.toLowerCase() === projectNameLower);
+
+    if (exists) {
+      this.errorMessage = 'Project already exists!';
+      return;
+    }
+
+    this.errorMessage = '';
+    this.showTaskForm = true;
+  }
+  submitProjectAndTask() {
+    const projectName = this.newProjectName.trim().toLowerCase();
+    const taskName = this.newTaskName.trim().toLowerCase();
+    const skillSet = this.newTaskSkills.split(',').map(s => s.trim().toLowerCase());
+
+    this.teamLeadService.createProject(projectName).subscribe({
+      next: () => {
+        // Add the project to local array since we can't fetch from API
+        const newProject = {
+          id: this.projects.length + 1, // Simple ID generation
+          name: projectName
+        };
+        this.projects.push(newProject);
+
+        this.teamLeadService.createTask(taskName, skillSet).subscribe({
+          next: () => {
+            // Add the task to local array since we can't fetch from API
+            const newTask = {
+              id: this.tasks.length + 1, // Simple ID generation
+              name: taskName,
+              skillSet: skillSet,
+              status: 'Pending'
+            };
+            this.tasks.push(newTask);
+            
+            this.resetForm();
+            // Remove the API reload calls since endpoints don't exist
+            // this.loadProjects();
+            // this.loadTasks();
+          },
+          error: () => this.errorMessage = 'Failed to create task'
+        });
+      },
+      error: () => this.errorMessage = 'Failed to create project'
+    });
+  }
+  assignTask(taskId: number) {
+    this.teamLeadService.assignTask(taskId).subscribe({
+      next: () => {
+        // Update the task status locally instead of reloading from API
+        const task = this.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.status = 'Assigned';
+        }
+        // this.loadTasks(); // Commented out since endpoint doesn't exist
+      },
+      error: () => this.errorMessage = 'Failed to assign task'
+    });
+  }
+
+  resetForm() {
+    this.newProjectName = '';
+    this.newTaskName = '';
+    this.newTaskSkills = '';
+    this.showTaskForm = false;
+    this.showCreateForm = false;
+  }
+}

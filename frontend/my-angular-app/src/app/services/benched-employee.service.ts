@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -10,15 +10,21 @@ export class BenchedEmployeeService {
 
   constructor(private http: HttpClient) { }
 
-  getTasks(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/tasks`);
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
   }
-
+  getTasks(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/tasks`, { headers: this.getAuthHeaders() });
+  }
   addSkills(skillSet: string[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/addSkills`, { skillSet });
+    return this.http.post(`${this.apiUrl}/addSkills`, { SkillSet: skillSet }, { headers: this.getAuthHeaders() });
   }
 
   updateTaskStatus(taskId: number, status: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/updateTask/${taskId}`, { status });
+    return this.http.put(`${this.apiUrl}/updateTask/${taskId}`, { status }, { headers: this.getAuthHeaders() });
   }
 } 

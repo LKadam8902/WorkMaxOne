@@ -21,19 +21,18 @@ export class SignInAccountComponent {
     private router: Router,
     private userService: UserService
   ) {}
-
   onSubmit() {
     // Try team lead login first
     this.userService.teamLeadLogin(this.email, this.password).subscribe({
       next: (response) => {
-        localStorage.setItem('token', response.accessToken);
+        localStorage.setItem('token', response.jwt);
         this.router.navigate(['/team-lead-view']);
       },
       error: (teamLeadError) => {
         // If team lead login fails, try benched employee login
         this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
           next: (response) => {
-            localStorage.setItem('token', response.accessToken);
+            localStorage.setItem('token', response.jwt);
             this.router.navigate(['/benched-employee-view']);
           },
           error: (benchedError) => {

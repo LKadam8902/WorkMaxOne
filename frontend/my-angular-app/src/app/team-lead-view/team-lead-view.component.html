@@ -7,10 +7,7 @@
   <!-- Main content -->
   <div class="main-content">
     <div class="top-bar">
-      <!-- Left: Logo -->
       <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
-    
-      <!-- Right: Profile Dropdown -->
       <div class="profile-dropdown">
         <img src="./icon.jpg" alt="Profile" class="profile-icon" (click)="toggleDropdown()" />
         <div class="dropdown-menu" *ngIf="showDropdown">
@@ -24,11 +21,21 @@
     <!-- Projects Section -->
     <div class="section">
       <div class="section-title">Projects</div>
-      <div class="create-form">
-        <input type="text" [(ngModel)]="newProjectName" placeholder="New project name" />
-        <button (click)="createProject()" class="create-btn">Create Project</button>
+
+      <div *ngIf="projects.length === 0 || showCreateForm">
+        <div class="create-form">
+          <input type="text" [(ngModel)]="newProjectName" placeholder="Project name" />
+          <button (click)="checkOrCreateProject()" class="create-btn">Create Project</button>
+        </div>
+
+        <div *ngIf="showTaskForm">
+          <input type="text" [(ngModel)]="newTaskName" placeholder="Task name" />
+          <input type="text" [(ngModel)]="newTaskSkills" placeholder="Skills (comma-separated)" />
+          <button (click)="submitProjectAndTask()" class="create-btn">Submit</button>
+        </div>
       </div>
-      <div class="table-container">
+
+      <div *ngIf="projects.length > 0 && !showCreateForm" class="table-container">
         <table class="data-table">
           <thead>
             <tr>
@@ -43,17 +50,13 @@
             </tr>
           </tbody>
         </table>
+        <button (click)="showCreateForm = true" class="create-btn" style="margin-top: 10px;">➕ Create New Project</button>
       </div>
     </div>
 
     <!-- Tasks Section -->
-    <div class="section">
+    <div class="section" *ngIf="tasks.length > 0">
       <div class="section-title">Tasks</div>
-      <div class="create-form">
-        <input type="text" [(ngModel)]="newTaskName" placeholder="New task name" />
-        <input type="text" [(ngModel)]="newTaskSkills" placeholder="Skills (comma-separated)" />
-        <button (click)="createTask()" class="create-btn">Create Task</button>
-      </div>
       <div class="table-container">
         <table class="data-table">
           <thead>
@@ -72,10 +75,7 @@
               <td>{{ task.skillSet.join(', ') }}</td>
               <td>{{ task.status }}</td>
               <td>
-                <button 
-                  *ngIf="task.status === 'Pending'"
-                  (click)="assignTask(task.id)" 
-                  class="assign-btn">
+                <button *ngIf="task.status === 'Pending'" (click)="assignTask(task.id)" class="assign-btn">
                   Assign
                 </button>
               </td>
@@ -85,4 +85,4 @@
       </div>
     </div>
   </div>
-</div> 
+</div>

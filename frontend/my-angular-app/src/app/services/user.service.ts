@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -9,6 +9,14 @@ export class UserService {
   private apiUrl = 'http://localhost:8000';
 
   constructor(private http: HttpClient) { }
+
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('adminToken');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
 
   createAccount(userData: any): Observable<any> {
     // Convert role to isTeamLead boolean
@@ -20,13 +28,12 @@ export class UserService {
     };
     return this.http.put(`${this.apiUrl}/employee/create`, requestData);
   }
-
   getPendingUsers(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/admin/view/getApprovalYetUser`);
+    return this.http.get(`${this.apiUrl}/admin/view/getApprovalYetUser`, { headers: this.getAuthHeaders() });
   }
 
   approveUser(userId: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/admin/view/ApproveEmployee/${userId}`, {});
+    return this.http.put(`${this.apiUrl}/admin/view/ApproveEmployee/${userId}`, {}, { headers: this.getAuthHeaders() });
   }
 
   teamLeadLogin(email: string, password: string): Observable<any> {
