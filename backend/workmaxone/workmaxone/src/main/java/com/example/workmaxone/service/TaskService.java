@@ -40,9 +40,10 @@ public class TaskService {
     @Autowired
     private TeamLeadRepo teamLeadRepo;
 
-    public Iterable<Task> getAllTask() {
-        return taskRepository.findAll();
+    public List<Task> getAllTaskByAssignedBy(int assignedBy) {
+        return taskRepository.findByAssignedBy(assignedBy);
     }
+
 
     public Task createTask(String name, List<String> skillSet, Integer assignedBy) {
         try {
@@ -81,73 +82,106 @@ public class TaskService {
         task.setStatus(String.valueOf(Status.DONE));
         Optional<BenchedEmployee> benchedEmployee=benchedEmployeeRepo.findById(task.getAssignedTo());
         benchedEmployee.get().setBenchDate(LocalDateTime.now());
-        task.setAssignedTo(null);
+        benchedEmployee.get().setTaskAssigned(false);
+        // task.setAssignedTo(null);
         taskRepository.save(task);
         benchedEmployeeRepo.save(benchedEmployee.get());
     }
 
     // TO_DO Create delete method to delete task
 
-    public ResponseEntity<TaskAssignResponse> assignTask(int taskId ,int teamLeadId ) {
-        List<Integer> beId = new ArrayList<>();
-        Task task = taskRepository.findById(taskId);
-        List<String> taskSkillList = task.getSkillSet();
-        List<BenchedEmployee> benchedEmp = benchedEmployeeRepo.findByIsTaskAssignedFalse();
-        if (benchedEmp.isEmpty()) {
-            return new ResponseEntity<>(
-                    new TaskAssignResponse(beId, "There is no Benched Employee to assign this task right now"),
-                    HttpStatus.NOT_FOUND);
-        }
-        beId = findRelevantBenchedEmp(benchedEmp, taskSkillList,taskId,teamLeadId);
+//
+public ResponseEntity<TaskAssignResponse> assignTask(int taskId, int teamLeadId) {
+    Task optionalTask = taskRepository.findById(taskId);
+    if (optionalTask==null) {
+        return new ResponseEntity<>(
+                new TaskAssignResponse(new ArrayList<>(), "Task with ID " + taskId + " not found."),
+                HttpStatus.NOT_FOUND);
+    }
+    Task task = optionalTask;
+    List<String> taskSkillList = task.getSkillSet();
 
-        return new ResponseEntity<>(new TaskAssignResponse(beId, "Task Assign Successfully "), HttpStatus.OK);
+
+    List<BenchedEmployee> benchedEmp = benchedEmployeeRepo.findByIsTaskAssignedFalse();
+    if (benchedEmp.isEmpty()) {
+        return new ResponseEntity<>(
+                new TaskAssignResponse(new ArrayList<>(), "There are no Benched Employees available right now."),
+                HttpStatus.NOT_FOUND);
     }
 
-    private List<Integer> findRelevantBenchedEmp(List<BenchedEmployee> benchedEmp, List<String> taskSkillList,int taskId,int teamLeadId) {
+
+    List<Integer> assignedEmployeeIds = findRelevantBenchedEmp(benchedEmp, taskSkillList, taskId, teamLeadId);
+
+    if (assignedEmployeeIds.isEmpty()) {
+
+        return new ResponseEntity<>(
+                new TaskAssignResponse(new ArrayList<>(), "No relevant Benched Employee found to assign this task."),
+                HttpStatus.NOT_FOUND);
+    }
+
+    return new ResponseEntity<>(new TaskAssignResponse(assignedEmployeeIds, "Task assigned successfully."), HttpStatus.OK);
+}
+
+    private List<Integer> findRelevantBenchedEmp(List<BenchedEmployee> benchedEmp, List<String> taskSkillList, int taskId, int teamLeadId) {
         List<Integer> bEmp = new ArrayList<>();
-
+        benchedEmp.forEach(be -> be.setBenchDuration((int)calculateBenchedDuration(be)));
         Comparator<BenchedEmployee> comparator = (bEmp1, bEmp2) -> {
-            int skillMatchCount1 = getSkillMatch(bEmp1.getSkillSet(), taskSkillList);
-            int skillMatchCount2 = getSkillMatch(bEmp2.getSkillSet(), taskSkillList);
-
             long duration1 = bEmp1.getBenchDuration();
             long duration2 = bEmp2.getBenchDuration();
 
-            if (duration1 != duration2) {
-                return Long.compare(duration1, duration2);
-            } else {
-                return Integer.compare(skillMatchCount1, skillMatchCount2);
+            int skillMatchCount1 = getSkillMatch(bEmp1.getSkillSet(), taskSkillList);
+            int skillMatchCount2 = getSkillMatch(bEmp2.getSkillSet(), taskSkillList);
+
+            int durationComparison = Long.compare(duration2, duration1);
+            if (durationComparison != 0) {
+                return durationComparison;
             }
+            return Integer.compare(skillMatchCount2, skillMatchCount1);
         };
-        PriorityQueue<BenchedEmployee> queue = new PriorityQueue<>(comparator.reversed());
 
-        BenchedEmployee benchedEmployee = queue.peek();
-        if (benchedEmployee != null) {
-            bEmp.add(benchedEmployee.getEmployeeId());
+        PriorityQueue<BenchedEmployee> queue = new PriorityQueue<>(comparator);
+        queue.addAll(benchedEmp);
 
-            benchedEmployee.setBenchDuration(0);
-            benchedEmployee.setTaskAssigned(true);
-            benchedEmployee.setBenchedDate(null);
+        BenchedEmployee bestBenchedEmployee = queue.poll();
+
+        if (bestBenchedEmployee != null) {
+            bEmp.add(bestBenchedEmployee.getEmployeeId());
+
+            bestBenchedEmployee.setBenchDuration(0);
+            bestBenchedEmployee.setTaskAssigned(true);
+            bestBenchedEmployee.setBenchedDate(null);
+            benchedEmployeeRepo.save(bestBenchedEmployee);
+
             Task task = taskRepository.findById(taskId);
-
-            task.setAssignedTo(benchedEmployee.getEmployeeId());
-            task.setStatus("In Progress");
-            task.setAssignedBy(teamLeadId);
+            if (task!=null) {
+                Task taskToUpdate = task;
+                taskToUpdate.setAssignedDate(LocalDateTime.now());
+                taskToUpdate.setAssignedTo(bestBenchedEmployee.getEmployeeId());
+                taskToUpdate.setStatus("In Progress");
+                taskToUpdate.setAssignedBy(teamLeadId);
+                taskRepository.save(taskToUpdate);
+            } else {
+                System.err.println("Error: Task " + taskId + " not found when trying to assign.");
+            }
         }
-
         return bEmp;
     }
 
     private int getSkillMatch(List<String> skillSet, List<String> taskSkillList) {
-        int count = 0;
+        if (skillSet == null || taskSkillList == null || skillSet.isEmpty() || taskSkillList.isEmpty()) {
+            return 0;
+        }
         List<String> tempSkillSet = new ArrayList<>(skillSet);
         tempSkillSet.retainAll(taskSkillList);
-        count = tempSkillSet.size();
-        return count;
+        return tempSkillSet.size();
     }
 
-    public long calculateBenchedDuration(BenchedEmployee benchedEmployee){
-        LocalDateTime benchDateTime = benchedEmployee.getBenchDate();
+    public long calculateBenchedDuration(BenchedEmployee benchedEmployee) {
+
+        if (benchedEmployee == null || benchedEmployee.getBenchedDate() == null) {
+            return 0;
+        }
+        LocalDateTime benchDateTime = benchedEmployee.getBenchedDate();
         LocalDateTime now = LocalDateTime.now();
 
         Duration duration = Duration.between(benchDateTime, now);

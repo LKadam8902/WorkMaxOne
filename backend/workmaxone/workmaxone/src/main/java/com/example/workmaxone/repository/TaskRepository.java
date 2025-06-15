@@ -15,4 +15,6 @@ public interface TaskRepository extends CrudRepository<Task,Integer> {
 
     public List<Task> findByAssignedBy(int managerId);
 
+    public List<Task> findByAssignedTo(int benchEmpId);
+
 }

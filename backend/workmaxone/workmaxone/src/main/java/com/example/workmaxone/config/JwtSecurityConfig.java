@@ -54,6 +54,8 @@ public class JwtSecurityConfig {
         System.out.println("hello from filterchain");
         http.authorizeHttpRequests((authorize) -> authorize
                 .requestMatchers("/admin/getAdminDetails").hasRole("ADMIN")
+                .requestMatchers("/benchEmployee").hasRole("BENCHED_EMPLOYEE")
+                .requestMatchers("/teamLead").hasRole("TEAM_LEAD")
                 .requestMatchers("/**").authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt

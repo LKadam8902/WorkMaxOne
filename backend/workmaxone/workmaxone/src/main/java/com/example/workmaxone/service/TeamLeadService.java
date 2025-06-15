@@ -11,12 +11,16 @@ public class TeamLeadService {
     @Autowired
     private TeamLeadRepo teamLeadRepo;
 
-    public void updateProfile(int teamLeadId,String name,String email,String profileUrl,String password){
+    public void updateProfile(int teamLeadId,String name,String profileUrl){
         TeamLead teamLead=teamLeadRepo.findById(teamLeadId);
         teamLead.setEmployeeName(name);
-        teamLead.setEmail(email);
         teamLead.setProfileUrl(profileUrl);
-        teamLead.setPassword(password);
         teamLeadRepo.save(teamLead);
     }
+
+    public TeamLead getDetails(int teamLead){
+        return teamLeadRepo.findById(teamLead);
+    }
+
+
 }

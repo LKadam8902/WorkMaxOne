@@ -3,6 +3,7 @@ package com.example.workmaxone.controller;
 import com.example.workmaxone.DTO.*;
 import com.example.workmaxone.entity.BenchedEmployee;
 import com.example.workmaxone.entity.Task;
+import com.example.workmaxone.entity.TeamLead;
 import com.example.workmaxone.repository.TeamLeadRepo;
 import com.example.workmaxone.service.BenchedEmployeeService;
 import com.example.workmaxone.service.ProjectService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/teamLead")
 public class TeamLeadController {
 
@@ -33,11 +35,6 @@ public class TeamLeadController {
     @Autowired
     private BenchedEmployeeService benchedEmployeeService;
 
-    @GetMapping("/hello")
-    public String greetings(){
-        return "Hello World";
-    }
-
     @PostMapping("/createProject")
     public ResponseEntity<ProjectResponse> createProject(@AuthenticationPrincipal Jwt jwt,@RequestBody ProjectRequest requestBody){
         int teamLeadId=Integer.valueOf(jwt.getSubject());
@@ -45,17 +42,25 @@ public class TeamLeadController {
         return new ResponseEntity<>(new ProjectResponse("Successfully created Project"),HttpStatus.CREATED);
     }
 
-//    @PutMapping("/updateProject")
+//    @PutMapping("/updateProject")//-> move this to Admin in future as Admin can only update the teamLEad like details 
+
 //    public ResponseEntity<ProjectResponse> updateProject(@AuthenticationPrincipal Jwt jwt,@RequestBody ProjectRequest requestBody){
 //        int teamLeadId=Integer.valueOf(jwt.getSubject());
 //        projectService.updateTask(teamLeadId,requestBody.name());
 //        return new ResponseEntity<>(new ProjectResponse("Succussfully updated Project"),HttpStatus.OK);
 //    }
 
+    @GetMapping("/details")
+    public ResponseEntity<TeamLead> getTeamLeadDetails(@AuthenticationPrincipal Jwt jwt){
+        int teamLeadId=Integer.valueOf(jwt.getSubject());
+        TeamLead lead=teamLeadService.getDetails(teamLeadId);
+        return new ResponseEntity<>(lead,HttpStatus.OK);
+    }
+
     @PutMapping("/editProfile")
     public ResponseEntity<EmployeeBodyResponse> editProfile(@AuthenticationPrincipal Jwt jwt,@RequestBody EmployeeBody requestBody){
         int teamLeadId=Integer.valueOf(jwt.getSubject());
-        teamLeadService.updateProfile(teamLeadId,requestBody.name(),requestBody.email(),requestBody.profileUrl(),requestBody.password());
+        teamLeadService.updateProfile(teamLeadId,requestBody.name(),requestBody.profileUrl());
         return new ResponseEntity<>(new EmployeeBodyResponse("Successfully updated profile"),HttpStatus.OK);
     }
 
@@ -66,8 +71,8 @@ public class TeamLeadController {
         return new ResponseEntity<>(new TaskResponse("Successfully created task"),HttpStatus.CREATED);
     }
   
-    @PutMapping("/assignTask")
-    public ResponseEntity<TaskResponse> assignTask(@AuthenticationPrincipal Jwt jwt,Integer taskId) {
+    @PutMapping("/assignTask/{id}")
+    public ResponseEntity<TaskResponse> assignTask(@AuthenticationPrincipal Jwt jwt,@PathVariable("id") Integer taskId) {
         int teamLeadId = Integer.valueOf(jwt.getSubject());
         var task = taskService.assignTask(taskId, teamLeadId);
         return new ResponseEntity<>(new TaskResponse("Task assigned successfully"),HttpStatus.OK);
@@ -78,6 +83,13 @@ public class TeamLeadController {
         int managerId=Integer.valueOf(jwt.getSubject());
         List<BenchedEmployee> benchedEmployeeList=benchedEmployeeService.getEmployees(managerId);
         return new ResponseEntity<>(benchedEmployeeList,HttpStatus.OK);
+    }
+
+    @GetMapping("/allTasks")
+    public ResponseEntity<List<Task>> allTask(@AuthenticationPrincipal Jwt jwt){
+        int managerId=Integer.valueOf(jwt.getSubject());
+        List<Task> getTaskAssigned=taskService.getAllTaskByAssignedBy(managerId);
+        return new ResponseEntity<>(getTaskAssigned,HttpStatus.OK);
     }
 
 }
