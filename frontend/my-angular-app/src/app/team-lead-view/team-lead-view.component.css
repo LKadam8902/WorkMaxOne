@@ -185,18 +185,27 @@
 
 .no-tasks {
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 32px 16px;
   color: #6b7280;
 }
 
-.no-tasks p {
-  margin: 0 0 4px 0;
-  font-size: 14px;
+.no-tasks-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
-.no-tasks small {
-  font-size: 12px;
-  color: #9ca3af;
+.no-tasks-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.no-tasks-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.4;
 }
 
 /* Top Bar */
@@ -914,4 +923,118 @@
   font-size: 11px;
   color: #666;
   border: 1px solid #ddd;
+}
+
+/* Sidebar improvements */
+.sidebar-header-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+.all-tasks-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.all-tasks-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.all-tasks-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-text {
+  flex: 1;
+}
+
+.task-count {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.refresh-tasks-btn {
+  width: 40px;
+  height: 40px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.refresh-tasks-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.refresh-tasks-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.refresh-icon {
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+
+.refresh-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.project-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.project-info.no-project {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.project-label {
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.project-name {
+  color: #1e293b;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.no-project .project-name {
+  color: #dc2626;
 }

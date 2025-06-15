@@ -13,16 +13,30 @@
         ◀
       </button>
     </div>
-    
-    <!-- Tasks Section in Sidebar -->
+      <!-- Tasks Section in Sidebar -->
     <div class="sidebar-content" *ngIf="showSidebar">
       <div class="sidebar-section">
-        <h3 class="sidebar-title">
-          All Tasks
-          <button class="debug-load-btn" (click)="loadTasks()" title="Debug: Load Tasks">
-            🔄
+        <!-- All Tasks Button -->
+        <div class="sidebar-header-section">
+          <button class="all-tasks-btn" (click)="loadAllTasks()" [disabled]="isLoadingTasks">
+            <span class="btn-icon">📋</span>
+            <span class="btn-text">All Tasks</span>
+            <span class="task-count" *ngIf="tasks.length > 0">({{ tasks.length }})</span>
           </button>
-        </h3>
+          <button class="refresh-tasks-btn" (click)="loadTasks()" [disabled]="isLoadingTasks" title="Refresh Tasks">
+            <span class="refresh-icon" [class.spinning]="isLoadingTasks">🔄</span>
+          </button>
+        </div>
+        
+        <!-- Project Info -->
+        <div class="project-info" *ngIf="profileData && profileData.project">
+          <div class="project-label">Current Project:</div>
+          <div class="project-name">{{ profileData.project.projectName }}</div>
+        </div>
+        <div class="project-info no-project" *ngIf="!profileData || !profileData.project">
+          <div class="project-label">Status:</div>
+          <div class="project-name">No active project</div>
+        </div>
         
         <!-- Loading indicator -->
         <div *ngIf="isLoadingTasks" class="sidebar-loading">
@@ -47,17 +61,11 @@
               Assign
             </button>
           </div>
-        </div>
-          <!-- No tasks message -->
+        </div>        <!-- No tasks message -->
         <div *ngIf="!isLoadingTasks && tasks.length === 0" class="no-tasks">
-          <p>No tasks created yet.</p>
-          <small>Create your first task using the form.</small>
-          <div class="debug-info">
-            <strong>Debug Info:</strong><br>
-            Tasks array length: {{ tasks.length }}<br>
-            Is loading: {{ isLoadingTasks }}<br>
-            Show sidebar: {{ showSidebar }}
-          </div>
+          <div class="no-tasks-icon">📋</div>
+          <p class="no-tasks-title">No tasks available</p>
+          <small class="no-tasks-subtitle">Create your first task using the form above.</small>
         </div>
       </div>
     </div>

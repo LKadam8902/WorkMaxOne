@@ -89,55 +89,65 @@ export class TeamLeadViewComponent implements OnInit {
         console.log('Response type:', typeof response);
         console.log('Is Array:', Array.isArray(response));
         
-        // Handle different response formats
-        if (Array.isArray(response)) {
-          this.tasks = response;
-          console.log('Using response as array directly');
-        } else if (response && Array.isArray(response.tasks)) {
-          this.tasks = response.tasks;
-          console.log('Using response.tasks array');
-        } else if (response && response.data && Array.isArray(response.data)) {
-          this.tasks = response.data;
-          console.log('Using response.data array');
-        } else {
-          this.tasks = [];
-          console.warn('Unexpected tasks response format:', response);
-          console.warn('Setting tasks to empty array');
-        }
+        let tasksArray: any[] = [];
         
-        this.isLoadingTasks = false;
-        console.log('Final processed tasks array:', this.tasks);
-        console.log('Number of tasks:', this.tasks.length);
+        if (Array.isArray(response)) {
+          console.log('Using response as array directly');
+          tasksArray = response;
+        } else if (response && typeof response === 'object' && response.tasks) {
+          console.log('Using response.tasks property');
+          tasksArray = response.tasks;
+        } else if (response && typeof response === 'object' && response.data) {
+          console.log('Using response.data property');
+          tasksArray = response.data;
+        } else if (response && typeof response === 'string') {
+          console.log('Response is string, attempting to parse...');
+          try {
+            const parsed = JSON.parse(response);
+            tasksArray = Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            console.error('Failed to parse string response:', e);
+            tasksArray = [];
+          }
+        }
+          console.log('Final processed tasks array:', tasksArray);
+        console.log('Number of tasks:', tasksArray.length);
         
         // Log each task for debugging
-        this.tasks.forEach((task, index) => {
-          console.log(`Task ${index}:`, {
-            id: this.getTaskId(task),
+        tasksArray.forEach((task, index) => {
+          console.log(`Task ${index + 1}:`, {
+            taskId: task.taskId || task.id,
             name: task.name,
-            skills: this.getTaskSkills(task),
-            status: this.getTaskStatusDisplay(task),
-            isPending: this.isTaskPending(task)
+            skillSet: task.skillSet,
+            assignedTo: task.assignedTo,
+            assigned: task.assigned,
+            status: task.status || (task.assigned ? 'assigned' : 'pending')
           });
         });
+        
+        this.tasks = tasksArray;
+        this.isLoadingTasks = false;
       },
       error: (error) => {
-        console.error('Failed to load tasks - ERROR:', error);
-        console.error('Error status:', error.status);
-        console.error('Error message:', error.message);
-        console.error('Error details:', error.error);
-        
-        this.tasks = [];
+        console.error('Error loading tasks:', error);
         this.isLoadingTasks = false;
-        
-        if (error.status === 401 || error.status === 403) {
-          this.errorMessage = 'Your session has expired. Please log in again.';
-          console.error('Authentication error - session expired');
-        } else {
-          this.errorMessage = 'Failed to load tasks. Please try refreshing.';
-          console.error('Other error loading tasks');
-        }
+        this.tasks = [];
       }
-    });  }
+    });
+  }
+
+  loadAllTasks() {
+    console.log('loadAllTasks() called - fetching all tasks for current project...');
+    this.loadTasks(); // For now, this does the same as loadTasks, but can be extended for project-specific filtering
+  }
+
+  forceRefreshTasks() {
+    console.log('forceRefreshTasks() called - forcing task list refresh...');
+    // Force a complete refresh with multiple attempts
+    setTimeout(() => this.loadTasks(), 100);
+    setTimeout(() => this.loadTasks(), 1000);
+    setTimeout(() => this.loadTasks(), 2000);
+  }
 
   onProjectSubmit() {
     if (!this.projectName.trim()) {
@@ -181,18 +191,25 @@ export class TeamLeadViewComponent implements OnInit {
     this.clearMessages();
     this.isLoading = true;
 
-    console.log('Creating task:', { name: this.taskName.trim(), skillSet });
-
-    this.teamLeadService.createTask(this.taskName.trim(), skillSet).subscribe({
+    console.log('Creating task:', { name: this.taskName.trim(), skillSet });    this.teamLeadService.createTask(this.taskName.trim(), skillSet).subscribe({
       next: (response) => {
         console.log('Task created successfully:', response);
         this.currentStep = 'complete';
         this.isLoading = false;
         this.successMessage = 'Task created successfully!';
         
-        // Reload tasks to show the new task in sidebar
+        // Clear the form
+        this.taskName = '';
+        this.skills = '';
+        
+        // Reload tasks to show the new task in sidebar with a slight delay
         console.log('Reloading tasks after task creation...');
-        this.loadTasks();
+        setTimeout(() => {
+          this.loadTasks();
+        }, 500); // 500ms delay to ensure backend has processed the new task
+        
+        // Also force refresh task count
+        this.forceRefreshTasks();
       },
       error: (error) => {
         console.error('Task creation failed:', error);
@@ -200,18 +217,27 @@ export class TeamLeadViewComponent implements OnInit {
         this.handleError(error, 'Failed to create task');
       }
     });
-  }
-  assignTask(taskId: number) {
+  }  assignTask(taskId: number) {
     if (!taskId) {
       this.errorMessage = 'Invalid task ID';
       return;
     }
 
+    console.log('Assigning task with ID:', taskId);
+    
     this.teamLeadService.assignTask(taskId).subscribe({
       next: (response) => {
+        console.log('Task assigned successfully:', response);
         this.successMessage = 'Task assigned successfully!';
-        // Reload tasks to update status
-        this.loadTasks();
+        
+        // Reload tasks to update status with delay
+        setTimeout(() => {
+          this.loadTasks();
+        }, 500);
+        
+        // Force multiple refreshes to ensure status updates
+        this.forceRefreshTasks();
+        
         // Clear message after 3 seconds
         setTimeout(() => {
           this.clearMessages();

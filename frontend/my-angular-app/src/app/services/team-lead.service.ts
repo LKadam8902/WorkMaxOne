@@ -163,73 +163,34 @@ export class TeamLeadService {
         throw error;
       })
     );
-  }
-
-  // Helper method to extract tasks from malformed JSON
+  }  // Helper method to extract tasks from malformed JSON
   private extractTasksFromMalformedJson(malformedJson: string): any[] {
-    console.log('extractTasksFromMalformedJson - Input:', malformedJson);
+    console.log('extractTasksFromMalformedJson - Input length:', malformedJson.length);
+    console.log('extractTasksFromMalformedJson - Input preview:', malformedJson.substring(0, 200) + '...');
     
-    // Try to find task objects in the malformed JSON
     const tasks: any[] = [];
     
-    // Look for task patterns in the string - updated pattern for backend response
-    const taskPattern = /"taskId":\s*(\d+),"name":"([^"]+)","skillSet":\s*\[([^\]]*)\],"assignedTo":(null|"[^"]*"),"assignedBy":\s*(\d+)/g;
-    let match;
-    
-    while ((match = taskPattern.exec(malformedJson)) !== null) {
-      const taskId = parseInt(match[1]);
-      const name = match[2];
-      const skillSetStr = match[3];
-      const assignedTo = match[4] === 'null' ? null : match[4];
-      const assignedBy = parseInt(match[5]);
+    try {
+      // Simple approach: extract what we can see from the logs
+      // From the logs, we can see: taskId:16, name:"ade", skillSet:["dc"], assignedTo:null, assignedBy:17
       
-      // Parse skill set
-      let skillSet: string[] = [];
-      if (skillSetStr) {
-        try {
-          // Extract skills from the skillSet string
+      // Extract basic task information using regex
+      const taskPattern = /"taskId":\s*(\d+),"name":"([^"]+)","skillSet":\s*\[([^\]]*)\],"assignedTo":(null|"[^"]*")/g;
+      let match;
+      
+      while ((match = taskPattern.exec(malformedJson)) !== null) {
+        const taskId = parseInt(match[1]);
+        const name = match[2];
+        const skillSetStr = match[3];
+        const assignedTo = match[4] === 'null' ? null : match[4].replace(/"/g, '');
+        
+        // Parse skill set
+        let skillSet: string[] = [];
+        if (skillSetStr) {
+          // Extract skills from the skillSet string like ["dc"] -> ["dc"]
           const skillPattern = /"([^"]+)"/g;
           let skillMatch;
           while ((skillMatch = skillPattern.exec(skillSetStr)) !== null) {
-            skillSet.push(skillMatch[1]);
-          }
-        } catch (skillError) {
-          console.warn('Failed to parse skillSet for task', taskId, skillError);
-        }
-      }
-      
-      const task = {
-        taskId: taskId,
-        name: name,
-        skillSet: skillSet,
-        assignedTo: assignedTo,
-        assignedBy: assignedBy,
-        assigned: assignedTo !== null // Task is assigned if assignedTo is not null
-      };
-      
-      tasks.push(task);
-      console.log('extractTasksFromMalformedJson - Extracted task:', task);
-    }
-    
-    // If no tasks found with the detailed pattern, try a simpler pattern
-    if (tasks.length === 0) {
-      console.log('No tasks found with detailed pattern, trying simpler pattern...');
-      const simpleTaskPattern = /"taskId":\s*(\d+),"name":"([^"]+)"/g;
-      let simpleMatch;
-      
-      while ((simpleMatch = simpleTaskPattern.exec(malformedJson)) !== null) {
-        const taskId = parseInt(simpleMatch[1]);
-        const name = simpleMatch[2];
-        
-        // Try to find skillSet for this task
-        const skillSetPattern = new RegExp(`"taskId":\\s*${taskId}.*?"skillSet":\\s*\\[([^\\]]*)\\]`, 'g');
-        const skillSetMatch = skillSetPattern.exec(malformedJson);
-        
-        let skillSet: string[] = [];
-        if (skillSetMatch && skillSetMatch[1]) {
-          const skillPattern = /"([^"]+)"/g;
-          let skillMatch;
-          while ((skillMatch = skillPattern.exec(skillSetMatch[1])) !== null) {
             skillSet.push(skillMatch[1]);
           }
         }
@@ -238,14 +199,58 @@ export class TeamLeadService {
           taskId: taskId,
           name: name,
           skillSet: skillSet,
-          assignedTo: null,
-          assignedBy: null,
-          assigned: false
+          assignedTo: assignedTo,
+          assigned: assignedTo !== null,
+          // Add helper properties for the UI
+          id: taskId, // Alternative ID field
+          status: assignedTo ? 'assigned' : 'pending'
         };
         
         tasks.push(task);
-        console.log('extractTasksFromMalformedJson - Extracted task (simple):', task);
+        console.log('extractTasksFromMalformedJson - Extracted task:', task);
       }
+      
+      // If we didn't get any tasks with the detailed pattern, try a simpler approach
+      if (tasks.length === 0) {
+        console.log('Trying simpler extraction pattern...');
+        
+        // Just extract taskId and name, set defaults for the rest
+        const simplePattern = /"taskId":\s*(\d+),"name":"([^"]+)"/g;
+        let simpleMatch;
+        
+        while ((simpleMatch = simplePattern.exec(malformedJson)) !== null) {
+          const taskId = parseInt(simpleMatch[1]);
+          const name = simpleMatch[2];
+          
+          // Try to find skillSet for this specific task
+          const skillSetPattern = new RegExp(`"taskId":\\s*${taskId}[^}]*"skillSet":\\s*\\[([^\\]]*)\\]`);
+          const skillSetMatch = skillSetPattern.exec(malformedJson);
+          
+          let skillSet: string[] = [];
+          if (skillSetMatch && skillSetMatch[1]) {
+            const skills = skillSetMatch[1].match(/"([^"]+)"/g);
+            if (skills) {
+              skillSet = skills.map(s => s.replace(/"/g, ''));
+            }
+          }
+          
+          const task = {
+            taskId: taskId,
+            name: name,
+            skillSet: skillSet,
+            assignedTo: null, // Default to unassigned
+            assigned: false,
+            id: taskId,
+            status: 'pending'
+          };
+          
+          tasks.push(task);
+          console.log('extractTasksFromMalformedJson - Extracted simple task:', task);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error in extractTasksFromMalformedJson:', error);
     }
     
     console.log('extractTasksFromMalformedJson - Total extracted tasks:', tasks.length);
