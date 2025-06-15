@@ -1,7 +1,66 @@
 <div class="team-lead-dashboard">
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="dashboard-icon" title="Dashboard">📊</div>
+  <!-- Enhanced Sidebar -->
+  <div class="sidebar" [class.collapsed]="!showSidebar">    <div class="sidebar-header" [class.clickable]="!showSidebar">
+      <div 
+        class="dashboard-icon" 
+        [title]="showSidebar ? 'Dashboard' : 'Click to expand sidebar'"
+        (click)="!showSidebar && openSidebar()">📊</div>
+      <button 
+        *ngIf="showSidebar"
+        class="toggle-sidebar-btn" 
+        (click)="closeSidebar()" 
+        title="Close Sidebar">
+        ◀
+      </button>
+    </div>
+    
+    <!-- Tasks Section in Sidebar -->
+    <div class="sidebar-content" *ngIf="showSidebar">
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">
+          All Tasks
+          <button class="debug-load-btn" (click)="loadTasks()" title="Debug: Load Tasks">
+            🔄
+          </button>
+        </h3>
+        
+        <!-- Loading indicator -->
+        <div *ngIf="isLoadingTasks" class="sidebar-loading">
+          <div class="loading-spinner"></div>
+          <span>Loading tasks...</span>
+        </div>
+          <!-- Tasks list -->
+        <div *ngIf="!isLoadingTasks && tasks.length > 0" class="tasks-list">
+          <div *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-item">
+            <div class="task-info">
+              <h4 class="task-name">{{ task.name }}</h4>
+              <p class="task-skills">{{ getTaskSkills(task) }}</p>
+              <span class="task-status" [class]="'status-' + getTaskStatus(task)">
+                {{ getTaskStatusDisplay(task) }}
+              </span>
+            </div>
+            <button 
+              *ngIf="isTaskPending(task)" 
+              (click)="assignTask(getTaskId(task))" 
+              class="assign-task-btn"
+              title="Assign this task">
+              Assign
+            </button>
+          </div>
+        </div>
+          <!-- No tasks message -->
+        <div *ngIf="!isLoadingTasks && tasks.length === 0" class="no-tasks">
+          <p>No tasks created yet.</p>
+          <small>Create your first task using the form.</small>
+          <div class="debug-info">
+            <strong>Debug Info:</strong><br>
+            Tasks array length: {{ tasks.length }}<br>
+            Is loading: {{ isLoadingTasks }}<br>
+            Show sidebar: {{ showSidebar }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Main content -->
