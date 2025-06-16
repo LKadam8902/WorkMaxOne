@@ -32,7 +32,12 @@ public class BenchedEmployeeController {
     public ResponseEntity<BenchedEmployee> getBenchedEmployeeDetails(@AuthenticationPrincipal Jwt jwt){
         int bempId=Integer.valueOf(jwt.getSubject());
         Optional<BenchedEmployee> bemp=benchedEmployeeService.getDetails(bempId);
-        return new ResponseEntity<>(bemp.get(),HttpStatus.OK);
+        if(bemp.isPresent()){
+            return new ResponseEntity<>(bemp.get(),HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(null,HttpStatus.BAD_GATEWAY);
+        }
+
     }
 
 
