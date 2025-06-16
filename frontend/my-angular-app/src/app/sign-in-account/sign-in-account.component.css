@@ -35,3 +35,28 @@
   font-size: 14px;
   text-align: center;
 }
+
+.form-check {
+  margin-bottom: 0.5rem;
+}
+
+.form-check-input {
+  margin-right: 0.5rem;
+}
+
+.form-check-label {
+  font-weight: 500;
+  color: #333;
+}
+
+.form-check-input:checked {
+  background-color: #ee7724;
+  border-color: #ee7724;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}

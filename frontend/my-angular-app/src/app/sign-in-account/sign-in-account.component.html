@@ -11,8 +11,37 @@
                   <!-- <h4 class="mt-1 mb-5 pb-1">Welcome to WorkMax</h4> -->
                 </div>
 
-                <form (ngSubmit)="onSubmit()">
-                  <p>Please login to your account</p>
+                <form (ngSubmit)="onSubmit()">                  <p>Please login to your account</p>
+
+                  <div class="form-outline mb-4">
+                    <p class="mb-2"><strong>Select your role:</strong></p>
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="userRole" 
+                        id="teamLead" 
+                        value="TEAM_LEAD"
+                        [(ngModel)]="selectedRole"
+                        required>
+                      <label class="form-check-label" for="teamLead">
+                        Team Lead
+                      </label>
+                    </div>
+                    <div class="form-check">
+                      <input 
+                        class="form-check-input" 
+                        type="radio" 
+                        name="userRole" 
+                        id="benchedEmployee" 
+                        value="BENCHED_EMPLOYEE"
+                        [(ngModel)]="selectedRole"
+                        required>
+                      <label class="form-check-label" for="benchedEmployee">
+                        Benched Employee
+                      </label>
+                    </div>
+                  </div>
 
                   <div class="form-outline mb-4">
                     <input 
@@ -22,9 +51,7 @@
                       [(ngModel)]="email"
                       name="email"
                       required />
-                  </div>
-
-                  <div class="form-outline mb-4">
+                  </div>                  <div class="form-outline mb-4">
                     <input 
                       type="password" 
                       class="form-control" 
