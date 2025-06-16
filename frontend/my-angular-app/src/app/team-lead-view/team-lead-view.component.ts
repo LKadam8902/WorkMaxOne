@@ -52,8 +52,47 @@ export class TeamLeadViewComponent implements OnInit {
   ) {
     console.log('TeamLeadViewComponent initialized');
   }  ngOnInit() {
-    // Validate user has team lead role
+    console.log('TeamLeadViewComponent - Initializing with role validation');
+    
+    // First check if token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No token found - redirecting to sign-in');
+      this.errorMessage = 'No authentication token found. Please log in.';
+      setTimeout(() => {
+        this.router.navigate(['/sign-in']);
+      }, 2000);
+      return;
+    }
+
+    // Check if token is valid (not expired)
+    if (!this.userService.isTokenValid()) {
+      console.log('Token is invalid or expired - redirecting to sign-in');
+      this.errorMessage = 'Your session has expired. Please log in again.';
+      setTimeout(() => {
+        this.userService.logout();
+        this.router.navigate(['/sign-in']);
+      }, 2000);
+      return;
+    }
+
+    // Extract and validate role from token
+    const tokenRole = this.userService.extractRoleFromToken(token);
+    console.log('Token role extracted:', tokenRole);
+    
+    if (tokenRole !== 'TEAM_LEAD') {
+      console.log(`Access denied - Expected TEAM_LEAD but got ${tokenRole}`);
+      this.errorMessage = `Access denied. This view requires Team Lead credentials. Your account has role: ${tokenRole || 'unknown'}`;
+      setTimeout(() => {
+        this.userService.logout();
+        this.router.navigate(['/sign-in']);
+      }, 3000);
+      return;
+    }
+
+    // Double-check with service validation
     if (!this.userService.validateTokenForRole('TEAM_LEAD')) {
+      console.log('Service validation failed for TEAM_LEAD role');
       this.errorMessage = 'Access denied. Team Lead credentials required.';
       setTimeout(() => {
         this.userService.logout();
@@ -61,6 +100,8 @@ export class TeamLeadViewComponent implements OnInit {
       }, 2000);
       return;
     }
+    
+    console.log('All validations passed - proceeding with component initialization');
     
     if (!this.teamLeadService.isLoggedIn()) {
       this.errorMessage = 'Your session has expired. Please log in again.';

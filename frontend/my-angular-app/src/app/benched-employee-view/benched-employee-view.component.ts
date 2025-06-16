@@ -35,10 +35,48 @@ export class BenchedEmployeeViewComponent implements OnInit {
     private benchedEmployeeService: BenchedEmployeeService,
     private router: Router,
     private userService: UserService
-  ) {}
-  ngOnInit() {
-    // Validate user has benched employee role
+  ) {}  ngOnInit() {
+    console.log('BenchedEmployeeViewComponent - Initializing with role validation');
+    
+    // First check if token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('No token found - redirecting to sign-in');
+      this.errorMessage = 'No authentication token found. Please log in.';
+      setTimeout(() => {
+        this.router.navigate(['/sign-in']);
+      }, 2000);
+      return;
+    }
+
+    // Check if token is valid (not expired)
+    if (!this.userService.isTokenValid()) {
+      console.log('Token is invalid or expired - redirecting to sign-in');
+      this.errorMessage = 'Your session has expired. Please log in again.';
+      setTimeout(() => {
+        this.userService.logout();
+        this.router.navigate(['/sign-in']);
+      }, 2000);
+      return;
+    }
+
+    // Extract and validate role from token
+    const tokenRole = this.userService.extractRoleFromToken(token);
+    console.log('Token role extracted:', tokenRole);
+    
+    if (tokenRole !== 'BENCHED_EMPLOYEE') {
+      console.log(`Access denied - Expected BENCHED_EMPLOYEE but got ${tokenRole}`);
+      this.errorMessage = `Access denied. This view requires Benched Employee credentials. Your account has role: ${tokenRole || 'unknown'}`;
+      setTimeout(() => {
+        this.userService.logout();
+        this.router.navigate(['/sign-in']);
+      }, 3000);
+      return;
+    }
+
+    // Double-check with service validation
     if (!this.userService.validateTokenForRole('BENCHED_EMPLOYEE')) {
+      console.log('Service validation failed for BENCHED_EMPLOYEE role');
       this.errorMessage = 'Access denied. Benched Employee credentials required.';
       setTimeout(() => {
         this.userService.logout();
@@ -46,6 +84,8 @@ export class BenchedEmployeeViewComponent implements OnInit {
       }, 2000);
       return;
     }
+    
+    console.log('All validations passed - proceeding with component initialization');
     
     if (!this.isLoggedIn()) {
       this.errorMessage = 'Your session has expired. Please log in again.';
