@@ -1,6 +1,8 @@
 package com.example.workmaxone.entity;
 
 import com.example.workmaxone.entity.enums.Status;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ public class Task {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id")
+    @JsonBackReference
     private Project project;
 
     private String status;
