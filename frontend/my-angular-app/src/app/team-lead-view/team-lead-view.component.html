@@ -15,105 +15,41 @@
     </div>
       <!-- Tasks Section in Sidebar -->
     <div class="sidebar-content" *ngIf="showSidebar">
-      <div class="sidebar-section">        <!-- All Tasks Button with Status Summary -->
-        <div class="sidebar-header-section">
-          <button class="all-tasks-btn" (click)="loadAllTasks()" [disabled]="isLoadingTasks">
+      <div class="sidebar-section">
+        <!-- All Tasks Button -->
+        <div class="sidebar-header-section">          <button class="all-tasks-btn" (click)="loadAllTasks()" [disabled]="isLoadingTasks">
             <span class="btn-icon">📋</span>
             <span class="btn-text">All Tasks</span>
-            <span class="task-count">({{ getTaskStatistics().total }})</span>
-          </button>
-          
-          <button class="refresh-tasks-btn" (click)="refreshTasksList()" [disabled]="isLoadingTasks" title="Refresh Tasks">
+            <span class="task-count">({{ tasks.length }})</span>
+          </button><button class="refresh-tasks-btn" (click)="refreshTasksList()" [disabled]="isLoadingTasks" title="Refresh Tasks">
             <span class="refresh-icon" [class.spinning]="isLoadingTasks">🔄</span>
           </button>
-          
-          <!-- Auto-refresh toggle -->
-          <button class="auto-refresh-btn" 
-                  (click)="toggleAutoRefresh()" 
-                  [class.active]="autoRefreshEnabled"
-                  title="{{ autoRefreshEnabled ? 'Disable auto-refresh' : 'Enable auto-refresh' }}">
-            <span class="auto-refresh-icon">{{ autoRefreshEnabled ? '🔄' : '⏸️' }}</span>
-          </button>
-        </div>
-        
-        <!-- Task Statistics -->
-        <div class="task-statistics" *ngIf="tasks.length > 0">
-          <h5>Task Overview</h5>
-          <div class="stats-grid">
-            <div class="stat-item pending" *ngIf="getTaskStatistics().pending > 0">
-              <span class="stat-icon">⏳</span>
-              <span class="stat-number">{{ getTaskStatistics().pending }}</span>
-              <span class="stat-label">Pending</span>
-            </div>
-            <div class="stat-item assigned" *ngIf="getTaskStatistics().assigned > 0">
-              <span class="stat-icon">👤</span>
-              <span class="stat-number">{{ getTaskStatistics().assigned }}</span>
-              <span class="stat-label">Assigned</span>
-            </div>
-            <div class="stat-item in-progress" *ngIf="getTaskStatistics().inProgress > 0">
-              <span class="stat-icon">🔄</span>
-              <span class="stat-number">{{ getTaskStatistics().inProgress }}</span>
-              <span class="stat-label">In Progress</span>
-            </div>
-            <div class="stat-item done" *ngIf="getTaskStatistics().done > 0">
-              <span class="stat-icon">✅</span>
-              <span class="stat-number">{{ getTaskStatistics().done }}</span>
-              <span class="stat-label">Done</span>
-            </div>
-          </div>
-          
-          <!-- Last update time -->
-          <div class="last-update">
-            <small>Last updated: {{ lastUpdateTime | date:'short' }}</small>
-          </div>
         </div>
         
         <!-- Loading indicator -->
         <div *ngIf="isLoadingTasks" class="sidebar-loading">
           <div class="loading-spinner"></div>
           <span>Loading tasks...</span>
-        </div>        <!-- Tasks list with enhanced status display -->
+        </div>
+          <!-- Tasks list -->
         <div *ngIf="!isLoadingTasks && tasks.length > 0" class="tasks-list">
-          <div *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-item" [class]="'task-' + getTaskStatus(task)">
+          <div *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-item">
             <div class="task-info">
               <h4 class="task-name">{{ task.name }}</h4>
               <p class="task-skills">{{ getTaskSkills(task) }}</p>
-              
-              <!-- Enhanced status display -->
-              <div class="task-status-container">
-                <span class="task-status" [class]="'status-' + getTaskStatus(task)">
-                  {{ getDetailedTaskStatus(task).icon }} {{ getDetailedTaskStatus(task).display }}
-                </span>
-                
-                <!-- Show assigned employee if available -->
-                <div *ngIf="task.assignedTo && task.assignedTo !== null" class="assigned-to">
-                  <small>Assigned to: {{ getAssignedEmployeeName(task) }}</small>
-                </div>
-                
-                <!-- Show assignment date if available -->
-                <div *ngIf="task.assignedDate" class="assigned-date">
-                  <small>Assigned: {{ task.assignedDate | date:'short' }}</small>
-                </div>
-              </div>
+              <span class="task-status" [class]="'status-' + getTaskStatus(task)">
+                {{ getTaskStatusDisplay(task) }}
+              </span>
             </div>
-            
-            <!-- Action buttons -->
-            <div class="task-actions">
-              <button 
-                *ngIf="isTaskPending(task)" 
-                (click)="assignTask(getTaskId(task))" 
-                class="assign-task-btn"
-                title="Assign this task">
-                Assign
-              </button>
-              
-              <!-- Show status for non-pending tasks -->
-              <div *ngIf="!isTaskPending(task)" class="task-status-badge" [style.color]="getDetailedTaskStatus(task).color">
-                {{ getDetailedTaskStatus(task).icon }}
-              </div>
-            </div>
+            <button 
+              *ngIf="isTaskPending(task)" 
+              (click)="assignTask(getTaskId(task))" 
+              class="assign-task-btn"
+              title="Assign this task">
+              Assign
+            </button>
           </div>
-        </div><!-- No tasks message -->
+        </div>        <!-- No tasks message -->
         <div *ngIf="!isLoadingTasks && tasks.length === 0" class="no-tasks">
           <div class="no-tasks-icon">📋</div>
           <p class="no-tasks-title">No tasks available</p>
@@ -189,35 +125,6 @@
       </button>
     </div>    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
     <div *ngIf="isLoading" class="loading-message">Loading...</div>
-
-    <!-- Status Change Notifications -->
-    <div *ngIf="getRecentStatusChanges().length > 0" class="status-notifications">
-      <div class="notifications-header">
-        <h4>📋 Recent Updates</h4>
-        <button class="clear-notifications-btn" (click)="clearStatusNotifications()" title="Clear notifications">✕</button>
-      </div>
-      <div class="notification-list">
-        <div *ngFor="let notification of getRecentStatusChanges()" 
-             class="notification-item" 
-             [class]="'notification-' + notification.type">
-          <div class="notification-content">
-            <span class="notification-icon">
-              {{ notification.type === 'status-change' ? '🔄' : '👤' }}
-            </span>
-            <div class="notification-text">
-              <strong>{{ notification.taskName }}</strong>
-              <span *ngIf="notification.type === 'status-change'">
-                status changed: {{ notification.previousStatus }} → <strong>{{ notification.newStatus }}</strong>
-              </span>
-              <span *ngIf="notification.type === 'assignment-change'">
-                assignment changed: {{ notification.previousAssignment || 'None' }} → {{ notification.newAssignment || 'None' }}
-              </span>
-            </div>
-            <span class="notification-time">{{ notification.timestamp | date:'short' }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Progress indicator -->
     <div class="progress-steps">
