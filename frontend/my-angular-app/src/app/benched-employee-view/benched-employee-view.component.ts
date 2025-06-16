@@ -34,16 +34,32 @@ export class BenchedEmployeeViewComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   showDropdown = false;
-  isLoading = false; // Not used currently, but good to have
+  isLoading = false;
   isLoadingTasks = false;
   profileData: any = null;
+
+  // Sidebar properties
+  showSidebar = true;
+  
+  // Profile dropdown properties
+  showProfileDropdown = false;
+  
+  // Edit profile modal properties
+  showEditProfileModal = false;
+  editProfileData: any = {
+    employeeName: '',
+    email: '',
+    password: ''
+  };
+  profileUpdateError = '';
+  profileUpdateSuccess = '';
+  isUpdatingProfile = false;
 
   constructor(
     private benchedEmployeeService: BenchedEmployeeService,
     private router: Router,
     private userService: UserService
   ) {}
-
   ngOnInit() {
     // Validate user has benched employee role
     if (!this.userService.validateTokenForRole('BENCHED_EMPLOYEE')) {
@@ -65,6 +81,16 @@ export class BenchedEmployeeViewComponent implements OnInit {
     
     this.loadTasks();
     this.loadProfile();
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (event) => {
+      if (this.showProfileDropdown) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.profile-dropdown')) {
+          this.showProfileDropdown = false;
+        }
+      }
+    });
   }
 
   isLoggedIn(): boolean {
@@ -72,7 +98,6 @@ export class BenchedEmployeeViewComponent implements OnInit {
     console.log('Checking login status. Token:', token ? 'exists' : 'not found');
     return !!token;
   }
-
   loadTasks() {
     console.log('Loading assigned tasks for benched employee...');
     this.isLoadingTasks = true;
@@ -86,32 +111,63 @@ export class BenchedEmployeeViewComponent implements OnInit {
         let tasksArray: Task[] = [];
         if (Array.isArray(response)) {
           tasksArray = response;
-        } else if (response && (response as any).tasks) { // Using 'any' for flexible property access
+        } else if (response && (response as any).tasks) {
           tasksArray = (response as any).tasks;
-        } else if (response && (response as any).data) { // Using 'any' for flexible property access
+        } else if (response && (response as any).data) {
           tasksArray = (response as any).data;
+        } else if (response && typeof response === 'object') {
+          // Single task object
+          tasksArray = [response];
         }
         
         console.log('Raw tasks array for filtering:', tasksArray);
         
-        // For benched employee, we expect the backend to return only assigned tasks
-        // But let's also filter to be safe
+        // For benched employee, show tasks that are assigned to them
         this.tasks = tasksArray.filter(task => {
-          // console.log('Checking task:', task.name, 'Status:', task.status, 'AssignedTo:', task.assignedTo); // Can be noisy
-          return task.assignedTo || 
-                 task.status === 'assigned' || 
-                 task.status === 'in-progress' || 
-                 task.status === 'completed';
+          return task && (
+            task.assignedTo || 
+            task.status === 'assigned' || 
+            task.status === 'In Progress' ||
+            task.status === 'in-progress' || 
+            task.status === 'completed'
+          );
         });
         
         console.log('Filtered assigned tasks:', this.tasks);
         this.isLoadingTasks = false;
+        
+        if (this.tasks.length === 0) {
+          this.successMessage = 'No tasks currently assigned to you.';
+          setTimeout(() => {
+            this.successMessage = '';
+          }, 3000);
+        }
       },
       error: (error) => {
         console.error('Error loading tasks:', error);
-        this.errorMessage = 'Failed to load assigned tasks: ' + (error.error?.message || error.message || 'Unknown error');
+        
+        // Better error message handling
+        let errorMsg = 'Failed to load assigned tasks';
+        if (error.status === 200) {
+          errorMsg += ' (Response parsing issue - server sent malformed data)';
+        } else if (error.status === 401) {
+          errorMsg = 'Session expired. Please log in again.';
+        } else if (error.status === 403) {
+          errorMsg = 'Access denied. Benched employee credentials required.';
+        } else if (error.error?.message) {
+          errorMsg += ': ' + error.error.message;
+        } else if (error.message) {
+          errorMsg += ': ' + error.message;
+        }
+        
+        this.errorMessage = errorMsg;
         this.isLoadingTasks = false;
         this.tasks = [];
+        
+        // Auto-clear error after 8 seconds
+        setTimeout(() => {
+          this.errorMessage = '';
+        }, 8000);
       }
     });
   }
@@ -196,26 +252,45 @@ export class BenchedEmployeeViewComponent implements OnInit {
       }
     });
   }
-
   getStatusOptions(): string[] {
-    return ['assigned', 'in-progress', 'completed'];
+    return ['to-do', 'in-progress', 'done'];
   }
 
   getStatusDisplay(status: string): string {
-    switch (status) {
-      case 'assigned': return 'Assigned';
-      case 'in-progress': return 'In Progress';
-      case 'completed': return 'Completed';
-      default: return status;
+    switch (status?.toLowerCase()) {
+      case 'assigned':
+      case 'to_do':
+      case 'to-do':
+      case 'todo':
+        return 'To Do';
+      case 'in_progress':
+      case 'in-progress':
+      case 'inprogress':
+        return 'In Progress';
+      case 'completed':
+      case 'done':
+        return 'Done';
+      default: 
+        return status || 'To Do';
     }
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
-      case 'assigned': return 'status-assigned';
-      case 'in-progress': return 'status-in-progress';
-      case 'completed': return 'status-completed';
-      default: return 'status-unknown';
+    switch (status?.toLowerCase()) {
+      case 'assigned':
+      case 'to_do':
+      case 'to-do':
+      case 'todo':
+        return 'status-assigned';
+      case 'in_progress':
+      case 'in-progress':
+      case 'inprogress':
+        return 'status-in-progress';
+      case 'completed':
+      case 'done':
+        return 'status-completed';
+      default: 
+        return 'status-assigned';
     }
   }
 
@@ -234,5 +309,132 @@ export class BenchedEmployeeViewComponent implements OnInit {
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
     console.log('Dropdown toggled. showDropdown:', this.showDropdown);
+  }
+
+  // Debug method to test task loading
+  debugTaskLoading() {
+    console.log('=== BENCHED EMPLOYEE TASK DEBUG ===');
+    console.log('Current tasks:', this.tasks.length);
+    
+    this.isLoadingTasks = true;
+    this.tasks = [];
+    this.errorMessage = '';
+    
+    this.benchedEmployeeService.getTasks().subscribe({
+      next: (response) => {
+        console.log('Debug - Raw response:', response);
+        console.log('Debug - Response type:', typeof response);
+        console.log('Debug - Is array:', Array.isArray(response));
+        
+        this.tasks = Array.isArray(response) ? response : [response].filter(t => t);
+        this.isLoadingTasks = false;
+        
+        console.log('Debug - Final tasks:', this.tasks);
+        this.successMessage = `✅ Loaded ${this.tasks.length} tasks successfully!`;
+        
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
+      },
+      error: (error) => {
+        console.error('Debug - Task loading error:', error);
+        this.isLoadingTasks = false;
+        this.errorMessage = 'Task loading failed: ' + error.message;
+      }
+    });
+  }
+
+  // Sidebar methods
+  openSidebar() {
+    this.showSidebar = true;
+  }
+
+  closeSidebar() {
+    this.showSidebar = false;
+  }
+
+  // Profile dropdown methods
+  toggleProfileDropdown() {
+    this.showProfileDropdown = !this.showProfileDropdown;
+    console.log('Profile dropdown toggled. showProfileDropdown:', this.showProfileDropdown);
+  }
+
+  // Edit profile methods
+  openEditProfile() {
+    this.editProfileData = {
+      employeeName: this.profileData?.employeeName || '',
+      email: this.profileData?.email || '',
+      password: ''
+    };
+    this.showEditProfileModal = true;
+    this.showProfileDropdown = false;
+    this.profileUpdateError = '';
+    this.profileUpdateSuccess = '';
+  }
+
+  closeEditProfile() {
+    this.showEditProfileModal = false;
+    this.profileUpdateError = '';
+    this.profileUpdateSuccess = '';
+  }
+  updateProfile() {
+    this.isUpdatingProfile = true;
+    this.profileUpdateError = '';
+    this.profileUpdateSuccess = '';
+
+    console.log('Updating profile with data:', this.editProfileData);
+
+    this.benchedEmployeeService.updateProfile(this.editProfileData).subscribe({
+      next: (response) => {
+        console.log('Profile updated successfully:', response);
+        this.profileUpdateSuccess = response.message || 'Profile updated successfully!';
+        this.isUpdatingProfile = false;
+        
+        // Update local profile data
+        if (this.profileData) {
+          this.profileData.employeeName = this.editProfileData.employeeName;
+          this.profileData.email = this.editProfileData.email;
+        }
+
+        // Close modal after delay
+        setTimeout(() => {
+          this.closeEditProfile();
+        }, 1500);
+      },
+      error: (error) => {
+        console.error('Failed to update profile:', error);
+        this.profileUpdateError = error.message || 'Failed to update profile. Please try again.';
+        this.isUpdatingProfile = false;
+      }
+    });
+  }
+
+  // Task helper methods
+  trackByTaskId(index: number, task: Task): any {
+    return task.taskId || task.id || index;
+  }
+
+  getTaskSkills(task: Task): string {
+    return task.skillSet ? task.skillSet.join(', ') : 'No skills specified';
+  }
+
+  getTaskStatus(task: Task): string {
+    return task.status || 'assigned';
+  }
+
+  getTaskStatusDisplay(task: Task): string {
+    return this.getStatusDisplay(task.status || 'assigned');
+  }
+
+  refreshTasksList() {
+    this.loadTasks();
+  }
+
+  retryLoadTasks() {
+    this.loadTasks();
+  }
+
+  redirectToLogin() {
+    this.router.navigate(['/sign-in']);
   }
 }
