@@ -42,6 +42,7 @@ export class SignInAccountComponent {
     // Attempt login based on selected role
     this.attemptRoleBasedLogin();
   }
+
   private attemptRoleBasedLogin() {
     console.log('=== STARTING ROLE-BASED LOGIN PROCESS ===');
     console.log('Email being used:', this.email);
@@ -52,105 +53,75 @@ export class SignInAccountComponent {
       this.attemptTeamLeadLogin();
     } else if (this.selectedRole === 'BENCHED_EMPLOYEE') {
       this.attemptBenchedEmployeeLogin();
-    }  }
+    }
+  }
 
   private attemptTeamLeadLogin() {
     console.log('Attempting team lead login...');
     this.userService.teamLeadLogin(this.email, this.password).subscribe({
       next: (response) => {
         console.log('=== TEAM LEAD LOGIN RESPONSE ===');
-        console.log('Full response object:', response);        if (response && response.jwt) {
-          console.log('=== JWT TOKEN ANALYSIS ===');
-          console.log('Raw JWT:', response.jwt);
-          
+        console.log('Full response object:', response);
+        
+        if (response && response.jwt) {
           const role = this.extractRoleFromToken(response.jwt);
           console.log('Extracted role from token:', role);
-          console.log('Selected role from UI:', this.selectedRole);
           
-          if (role) {
-            console.log('=== ROLE CONSISTENCY CHECK ===');
-            const roleCheck = this.userService.checkRoleConsistency(this.selectedRole, role);
-            console.log('Role check result:', roleCheck);
-            
-            if (roleCheck.isValid) {
-              console.log('✅ Role validation successful - proceeding to team lead view');
-              localStorage.setItem('token', response.jwt);
-              this.router.navigate(['/team-lead-view']);
-            } else {
-              console.log('❌ Role validation failed');
-              console.log('Expected role:', this.selectedRole);
-              console.log('Actual role in token:', role);
-              this.errorMessage = roleCheck.message;
-              this.userService.clearAllTokens();
-            }
+          if (role === 'TEAM_LEAD') {
+            console.log('Role matches - proceeding to team lead view');
+            localStorage.setItem('token', response.jwt);
+            this.router.navigate(['/team-lead-view']);
           } else {
-            console.log('❌ No role found in token');
-            this.errorMessage = 'Unable to determine user role from authentication token.';
-            this.userService.clearAllTokens();
+            console.log('Role mismatch - user is not a team lead');
+            this.errorMessage = 'Access denied. You are not authorized as a Team Lead.';
           }
         } else {
           this.errorMessage = 'Invalid response from server';
         }
-      },      error: (error) => {
+      },
+      error: (error) => {
         console.log('=== TEAM LEAD LOGIN ERROR ===');
-        console.log('Error:', error);        if (error.status === 401) {
-          this.errorMessage = 'Invalid email or password for Team Lead access.';
-        } else if (error.status === 403) {
-          this.errorMessage = 'Access denied. You are not authorized as a Team Lead. Please check your role selection.';
+        console.log('Error:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.errorMessage = 'Invalid email or password, or you are not authorized as a Team Lead.';
         } else {
-          this.errorMessage = 'Login failed. Please check your credentials and try again.';
+          this.errorMessage = 'Login failed. Please try again.';
         }
-        this.userService.clearAllTokens();
       }
     });
   }
+
   private attemptBenchedEmployeeLogin() {
     console.log('Attempting benched employee login...');
     this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
       next: (response) => {
         console.log('=== BENCHED EMPLOYEE LOGIN RESPONSE ===');
-        console.log('Full response object:', response);        if (response && response.jwt) {
-          console.log('=== JWT TOKEN ANALYSIS ===');
-          console.log('Raw JWT:', response.jwt);
-          
+        console.log('Full response object:', response);
+        
+        if (response && response.jwt) {
           const role = this.extractRoleFromToken(response.jwt);
           console.log('Extracted role from token:', role);
-          console.log('Selected role from UI:', this.selectedRole);
           
-          if (role) {
-            console.log('=== ROLE CONSISTENCY CHECK ===');
-            const roleCheck = this.userService.checkRoleConsistency(this.selectedRole, role);
-            console.log('Role check result:', roleCheck);
-            
-            if (roleCheck.isValid) {
-              console.log('✅ Role validation successful - proceeding to benched employee view');
-              localStorage.setItem('token', response.jwt);
-              this.router.navigate(['/benched-employee-view']);
-            } else {
-              console.log('❌ Role validation failed');
-              console.log('Expected role:', this.selectedRole);
-              console.log('Actual role in token:', role);
-              this.errorMessage = roleCheck.message;
-              this.userService.clearAllTokens();
-            }
+          if (role === 'BENCHED_EMPLOYEE') {
+            console.log('Role matches - proceeding to benched employee view');
+            localStorage.setItem('token', response.jwt);
+            this.router.navigate(['/benched-employee-view']);
           } else {
-            console.log('❌ No role found in token');
-            this.errorMessage = 'Unable to determine user role from authentication token.';
-            this.userService.clearAllTokens();
+            console.log('Role mismatch - user is not a benched employee');
+            this.errorMessage = 'Access denied. You are not authorized as a Benched Employee.';
           }
         } else {
           this.errorMessage = 'Invalid response from server';
         }
-      },      error: (error) => {
+      },
+      error: (error) => {
         console.log('=== BENCHED EMPLOYEE LOGIN ERROR ===');
-        console.log('Error:', error);        if (error.status === 401) {
-          this.errorMessage = 'Invalid email or password for Benched Employee access.';
-        } else if (error.status === 403) {
-          this.errorMessage = 'Access denied. You are not authorized as a Benched Employee. Please check your role selection.';
+        console.log('Error:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.errorMessage = 'Invalid email or password, or you are not authorized as a Benched Employee.';
         } else {
-          this.errorMessage = 'Login failed. Please check your credentials and try again.';
+          this.errorMessage = 'Login failed. Please try again.';
         }
-        this.userService.clearAllTokens();
       }
     });
   }

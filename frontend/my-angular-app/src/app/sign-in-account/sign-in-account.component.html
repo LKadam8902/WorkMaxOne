@@ -54,9 +54,7 @@
                       [(ngModel)]="password"
                       name="password"
                       required />
-                  </div>                  <div *ngIf="errorMessage" class="error-message">
-                    <i class="fas fa-exclamation-triangle me-2"></i>{{ errorMessage }}
-                  </div>
+                  </div>                  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
                   <div class="text-center pt-1 mb-3">
                     <button type="submit" class="btn btn-primary btn-block gradient-custom-2 mb-2">
