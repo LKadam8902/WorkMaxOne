@@ -15,6 +15,7 @@ export class SignInAccountComponent {
   showForgotPasswordMessage = false;
   email: string = '';
   password: string = '';
+  selectedRole: string = '';
   errorMessage: string = '';
 
   constructor(
@@ -23,58 +24,103 @@ export class SignInAccountComponent {
   ) {}
 
   onSubmit() {
-    console.log('Login attempt with:', this.email, this.password);
+    console.log('=== LOGIN ATTEMPT STARTED ===');
+    console.log('Email:', this.email);
+    console.log('Password length:', this.password.length);
+    console.log('Selected role:', this.selectedRole);
     this.errorMessage = '';
     
-    // Try benched employee login first
-    this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
+    // Validate that a role is selected
+    if (!this.selectedRole) {
+      this.errorMessage = 'Please select your role (Team Lead or Benched Employee)';
+      return;
+    }
+    
+    // Clear any existing token first
+    localStorage.removeItem('token');
+    
+    // Attempt login based on selected role
+    this.attemptRoleBasedLogin();
+  }
+
+  private attemptRoleBasedLogin() {
+    console.log('=== STARTING ROLE-BASED LOGIN PROCESS ===');
+    console.log('Email being used:', this.email);
+    console.log('Password length:', this.password.length);
+    console.log('Selected role:', this.selectedRole);
+    
+    if (this.selectedRole === 'TEAM_LEAD') {
+      this.attemptTeamLeadLogin();
+    } else if (this.selectedRole === 'BENCHED_EMPLOYEE') {
+      this.attemptBenchedEmployeeLogin();
+    }
+  }
+
+  private attemptTeamLeadLogin() {
+    console.log('Attempting team lead login...');
+    this.userService.teamLeadLogin(this.email, this.password).subscribe({
       next: (response) => {
-        console.log('Benched employee login successful:', response);
-        const role = this.extractRoleFromToken(response.jwt);
-        console.log('Extracted role from token:', role);
+        console.log('=== TEAM LEAD LOGIN RESPONSE ===');
+        console.log('Full response object:', response);
         
-        localStorage.setItem('token', response.jwt);
-        
-        if (role === 'BENCHED_EMPLOYEE') {
-          this.router.navigate(['/benched-employee-view']);
+        if (response && response.jwt) {
+          const role = this.extractRoleFromToken(response.jwt);
+          console.log('Extracted role from token:', role);
+          
+          if (role === 'TEAM_LEAD') {
+            console.log('Role matches - proceeding to team lead view');
+            localStorage.setItem('token', response.jwt);
+            this.router.navigate(['/team-lead-view']);
+          } else {
+            console.log('Role mismatch - user is not a team lead');
+            this.errorMessage = 'Access denied. You are not authorized as a Team Lead.';
+          }
         } else {
-          // If role is not benched employee, try team lead login instead
-          this.tryTeamLeadLogin();
-          return;
+          this.errorMessage = 'Invalid response from server';
         }
       },
-      error: (benchedError) => {
-        console.log('Benched employee login failed:', benchedError);
-        // If benched employee login fails, try team lead login
-        this.tryTeamLeadLogin();
+      error: (error) => {
+        console.log('=== TEAM LEAD LOGIN ERROR ===');
+        console.log('Error:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.errorMessage = 'Invalid email or password, or you are not authorized as a Team Lead.';
+        } else {
+          this.errorMessage = 'Login failed. Please try again.';
+        }
       }
     });
   }
 
-  private tryTeamLeadLogin() {
-    this.userService.teamLeadLogin(this.email, this.password).subscribe({
+  private attemptBenchedEmployeeLogin() {
+    console.log('Attempting benched employee login...');
+    this.userService.benchedEmployeeLogin(this.email, this.password).subscribe({
       next: (response) => {
-        console.log('Team lead login successful:', response);
-        const role = this.extractRoleFromToken(response.jwt);
-        console.log('Extracted role from token:', role);
+        console.log('=== BENCHED EMPLOYEE LOGIN RESPONSE ===');
+        console.log('Full response object:', response);
         
-        localStorage.setItem('token', response.jwt);
-        
-        if (role === 'TEAM_LEAD') {
-          this.router.navigate(['/team-lead-view']);
+        if (response && response.jwt) {
+          const role = this.extractRoleFromToken(response.jwt);
+          console.log('Extracted role from token:', role);
+          
+          if (role === 'BENCHED_EMPLOYEE') {
+            console.log('Role matches - proceeding to benched employee view');
+            localStorage.setItem('token', response.jwt);
+            this.router.navigate(['/benched-employee-view']);
+          } else {
+            console.log('Role mismatch - user is not a benched employee');
+            this.errorMessage = 'Access denied. You are not authorized as a Benched Employee.';
+          }
         } else {
-          // Fallback to team lead view
-          this.router.navigate(['/team-lead-view']);
+          this.errorMessage = 'Invalid response from server';
         }
       },
-      error: (teamLeadError) => {
-        console.log('Team lead login also failed:', teamLeadError);
-        if (teamLeadError.error && teamLeadError.error.messagge) {
-          this.errorMessage = teamLeadError.error.messagge;
-        } else if (teamLeadError.error && teamLeadError.error.message) {
-          this.errorMessage = teamLeadError.error.message;
+      error: (error) => {
+        console.log('=== BENCHED EMPLOYEE LOGIN ERROR ===');
+        console.log('Error:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.errorMessage = 'Invalid email or password, or you are not authorized as a Benched Employee.';
         } else {
-          this.errorMessage = 'Invalid email or password';
+          this.errorMessage = 'Login failed. Please try again.';
         }
       }
     });
@@ -87,8 +133,50 @@ export class SignInAccountComponent {
       // Decode base64 payload
       const decodedPayload = atob(payload);
       const parsedPayload = JSON.parse(decodedPayload);
-      console.log('JWT payload:', parsedPayload);
-      return parsedPayload.role || null;
+      console.log('=== JWT PAYLOAD ANALYSIS ===');
+      console.log('Full JWT payload:', parsedPayload);
+      
+      // Check multiple possible role field names
+      let role = parsedPayload.role || parsedPayload.roles || parsedPayload.authority || parsedPayload.authorities;
+      console.log('Raw role value:', role);
+      
+      if (Array.isArray(role)) {
+        role = role[0]; // Take the first role if it's an array
+        console.log('Extracted first role from array:', role);
+      }
+      
+      if (role) {
+        const originalRole = role.toString();
+        console.log('Role found:', originalRole);
+        
+        // Return the exact role as received (case-sensitive)
+        if (originalRole === 'TEAM_LEAD') {
+          console.log('Detected as TEAM_LEAD');
+          return 'TEAM_LEAD';
+        } else if (originalRole === 'ADMIN') {
+          console.log('Detected as ADMIN');
+          return 'ADMIN';
+        } else if (originalRole === 'BENCHED_EMPLOYEE' || originalRole === 'BENCH_EMPLOYEE') {
+          console.log('Detected as BENCHED_EMPLOYEE');
+          return 'BENCHED_EMPLOYEE';
+        } else {
+          // For any other role variations, try to normalize
+          const upperRole = originalRole.toUpperCase();
+          if (upperRole.includes('BENCH') || (upperRole.includes('EMPLOYEE') && !upperRole.includes('TEAM'))) {
+            console.log('Detected as BENCHED_EMPLOYEE (normalized)');
+            return 'BENCHED_EMPLOYEE';
+          } else if (upperRole.includes('TEAM') && upperRole.includes('LEAD')) {
+            console.log('Detected as TEAM_LEAD (normalized)');
+            return 'TEAM_LEAD';
+          } else {
+            console.log('Unknown role format:', originalRole);
+            return originalRole;
+          }
+        }
+      }
+      
+      console.log('No role found in token');
+      return null;
     } catch (error) {
       console.error('Error extracting role from token:', error);
       return null;
