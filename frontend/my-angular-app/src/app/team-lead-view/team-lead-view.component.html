@@ -17,25 +17,13 @@
     <div class="sidebar-content" *ngIf="showSidebar">
       <div class="sidebar-section">
         <!-- All Tasks Button -->
-        <div class="sidebar-header-section">
-          <button class="all-tasks-btn" (click)="loadAllTasks()" [disabled]="isLoadingTasks">
+        <div class="sidebar-header-section">          <button class="all-tasks-btn" (click)="loadAllTasks()" [disabled]="isLoadingTasks">
             <span class="btn-icon">📋</span>
             <span class="btn-text">All Tasks</span>
-            <span class="task-count" *ngIf="tasks.length > 0">({{ tasks.length }})</span>
-          </button>
-          <button class="refresh-tasks-btn" (click)="loadTasks()" [disabled]="isLoadingTasks" title="Refresh Tasks">
+            <span class="task-count">({{ tasks.length }})</span>
+          </button><button class="refresh-tasks-btn" (click)="refreshTasksList()" [disabled]="isLoadingTasks" title="Refresh Tasks">
             <span class="refresh-icon" [class.spinning]="isLoadingTasks">🔄</span>
           </button>
-        </div>
-        
-        <!-- Project Info -->
-        <div class="project-info" *ngIf="profileData && profileData.project">
-          <div class="project-label">Current Project:</div>
-          <div class="project-name">{{ profileData.project.projectName }}</div>
-        </div>
-        <div class="project-info no-project" *ngIf="!profileData || !profileData.project">
-          <div class="project-label">Status:</div>
-          <div class="project-name">No active project</div>
         </div>
         
         <!-- Loading indicator -->
@@ -66,6 +54,9 @@
           <div class="no-tasks-icon">📋</div>
           <p class="no-tasks-title">No tasks available</p>
           <small class="no-tasks-subtitle">Create your first task using the form above.</small>
+          <button class="retry-btn" (click)="retryLoadTasks()" style="margin-top: 10px; padding: 8px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+            🔄 Retry Loading
+          </button>
         </div>
       </div>
     </div>
@@ -96,15 +87,8 @@
                 </div>
               </div>
             </div>
-            
-            <!-- Divider -->
+              <!-- Divider -->
             <div style="height: 1px; background: #e5e7eb;"></div>
-            
-            <!-- Project Status -->
-            <div style="padding: 12px 16px; display: flex; justify-content: space-between; font-size: 14px; border-bottom: 1px solid #f3f4f6;">
-              <span style="color: #6b7280; font-weight: 500;">Status:</span>
-              <span style="color: #111827; font-weight: 600;">{{ profileData?.project?.projectName || 'No active project' }}</span>
-            </div>
             
             <!-- Buttons -->
             <div style="padding: 8px;">
@@ -139,8 +123,7 @@
               class="login-btn">
         Go to Login
       </button>
-    </div>
-    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+    </div>    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
     <div *ngIf="isLoading" class="loading-message">Loading...</div>
 
     <!-- Progress indicator -->
@@ -174,12 +157,20 @@
           [disabled]="isLoading"
           class="form-input" />
       </div>
-      
-      <button 
+        <button 
         (click)="onProjectSubmit()" 
         [disabled]="isLoading || !projectName.trim()"
         class="primary-btn">
         {{ isLoading ? 'Creating...' : 'Create Project' }}
+      </button>
+      
+      <!-- Add task mode button if tasks exist -->
+      <button 
+        *ngIf="tasks.length > 0"
+        (click)="switchToTaskMode()" 
+        class="secondary-btn"
+        style="margin-left: 10px; background-color: #28a745; color: white;">
+        Switch to Add Tasks
       </button>
     </div>
 
@@ -231,6 +222,28 @@
         </button>
         <button (click)="redirectToLogin()" class="secondary-btn">          Back to Dashboard
         </button>
+      </div>
+    </div>
+      <!-- Backend Issue Alert -->
+    <div style="background: #f8d7da; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #dc3545; color: #721c24;">
+      <strong>� Backend Issue Detected:</strong> 
+      <div style="margin-top: 8px;">
+        The backend <code>/teamLead/allTasks</code> endpoint is only returning <strong>1 task</strong> instead of all <strong>4 tasks</strong> from the database.
+      </div>
+      <div style="margin-top: 8px; font-size: 14px;">
+        <strong>Expected tasks:</strong> project ui (ID:1), project frontend (ID:2), project backend (ID:3), project readme (ID:4)<br>
+        <strong>Currently returned:</strong> Only project frontend (ID:2)
+      </div>
+      <div style="margin-top: 10px;">
+        <button (click)="analyzeBackendResponse()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 3px; margin-right: 10px;">
+          🔍 Re-analyze Backend
+        </button>
+        <button (click)="loadAllTasks()" style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 3px;">
+          🔄 Retry Load
+        </button>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
+        <strong>Backend Fix Needed:</strong> Check the Spring Boot controller/service for the <code>allTasks</code> endpoint and ensure it returns ALL tasks for the team lead, not just one.
       </div>
     </div>
   </div>

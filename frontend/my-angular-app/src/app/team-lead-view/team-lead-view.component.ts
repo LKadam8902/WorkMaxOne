@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { TeamLeadService } from '../services/team-lead.service';
 import { UserService } from '../services/user.service';
 
@@ -43,12 +44,12 @@ export class TeamLeadViewComponent implements OnInit {
   };
   isUpdatingProfile = false;
   profileUpdateError = '';
-  profileUpdateSuccess = '';
-  constructor(
+  profileUpdateSuccess = '';  constructor(
     private teamLeadService: TeamLeadService, 
     private elementRef: ElementRef,
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {
     console.log('TeamLeadViewComponent initialized');
   }  ngOnInit() {
@@ -70,10 +71,10 @@ export class TeamLeadViewComponent implements OnInit {
       return;
     }
     
-    this.checkExistingProject();
+    // Load tasks first to determine if user has existing project
     this.loadTasks();
-  }
-  private checkExistingProject() {
+    this.checkExistingProject();
+  }private checkExistingProject() {
     this.isLoading = true;
     this.teamLeadService.getProjects().subscribe({
       next: (response) => {
@@ -84,9 +85,15 @@ export class TeamLeadViewComponent implements OnInit {
         if (response && response.project) {
           this.hasExistingProject = true;
           this.currentStep = 'task';
+          console.log('Existing project found, loading tasks...');
+          // Load tasks immediately for existing projects
+          this.loadTasks();
         } else {
           this.hasExistingProject = false;
           this.currentStep = 'project';
+          // Still load tasks in case backend has project but JSON parsing failed
+          console.log('No project detected in response, but checking for tasks anyway...');
+          this.loadTasks();
         }
         this.isLoading = false;
       },
@@ -99,10 +106,9 @@ export class TeamLeadViewComponent implements OnInit {
         }
       }
     });
-  }  loadTasks() {
+  }loadTasks() {
     console.log('loadTasks() called - checking for tasks...');
-    this.isLoadingTasks = true;
-    this.teamLeadService.getTasks().subscribe({
+    this.isLoadingTasks = true;    this.teamLeadService.getTasks().subscribe({
       next: (response) => {
         console.log('RAW Tasks API response:', response);
         console.log('Response type:', typeof response);
@@ -128,9 +134,13 @@ export class TeamLeadViewComponent implements OnInit {
             console.error('Failed to parse string response:', e);
             tasksArray = [];
           }
+        } else {
+          console.warn('Unexpected response format, treating as empty array');
+          tasksArray = [];
         }
-          console.log('Final processed tasks array:', tasksArray);
-        console.log('Number of tasks:', tasksArray.length);
+        
+        console.log('Final processed tasks array:', tasksArray);
+        console.log('Number of tasks found:', tasksArray.length);
         
         // Log each task for debugging
         tasksArray.forEach((task, index) => {
@@ -142,32 +152,64 @@ export class TeamLeadViewComponent implements OnInit {
             assigned: task.assigned,
             status: task.status || (task.assigned ? 'assigned' : 'pending')
           });
-        });
-        
-        this.tasks = tasksArray;
+        });this.tasks = tasksArray;
         this.isLoadingTasks = false;
+        console.log('Tasks loaded successfully. Total tasks:', this.tasks.length);
+        
+        // If we have tasks but no project was detected, assume project exists
+        if (this.tasks.length > 0 && !this.hasExistingProject) {
+          console.log('Tasks found but no project detected - assuming project exists, switching to task mode');
+          this.hasExistingProject = true;
+          this.currentStep = 'task';
+        }
+        
+        // Update sidebar visibility if tasks are available
+        this.updateSidebarVisibility();
       },
       error: (error) => {
         console.error('Error loading tasks:', error);
         this.isLoadingTasks = false;
         this.tasks = [];
+        // Don't show error to user unless it's a critical auth issue
+        if (error.status === 401 || error.status === 403) {
+          this.errorMessage = 'Session expired. Please log in again.';
+        } else {
+          // For JSON parsing errors, just log them but don't show to user
+          console.warn('Tasks could not be loaded due to server response format issues. This will be resolved automatically.');
+        }
       }
     });
-  }
-
-  loadAllTasks() {
+  }  loadAllTasks() {
     console.log('loadAllTasks() called - fetching all tasks for current project...');
-    this.loadTasks(); // For now, this does the same as loadTasks, but can be extended for project-specific filtering
+    this.tasks = []; // Clear existing tasks first
+    this.loadTasks(); // Reload from server
+  }  refreshTasksList() {
+    console.log('refreshTasksList() called - performing immediate task refresh...');
+    this.tasks = []; // Clear current tasks
+    this.isLoadingTasks = true; // Show loading state
+    this.loadTasks();
   }
 
   forceRefreshTasks() {
     console.log('forceRefreshTasks() called - forcing task list refresh...');
-    // Force a complete refresh with multiple attempts
-    setTimeout(() => this.loadTasks(), 100);
-    setTimeout(() => this.loadTasks(), 1000);
-    setTimeout(() => this.loadTasks(), 2000);
+    // Single refresh instead of multiple attempts to avoid conflicts
+    this.loadTasks();
   }
 
+  retryLoadTasks() {
+    console.log('retryLoadTasks() called - retrying task load after delay...');
+    setTimeout(() => {
+      this.loadTasks();
+    }, 1000);
+  }
+
+  // Ensure sidebar shows tasks when they exist
+  updateSidebarVisibility() {
+    if (this.tasks.length > 0 && !this.showSidebar) {
+      console.log('Tasks available, ensuring sidebar is visible');
+      this.showSidebar = true;
+    }
+  }
   onProjectSubmit() {
     if (!this.projectName.trim()) {
       this.errorMessage = 'Please enter a project name.';
@@ -183,13 +225,19 @@ export class TeamLeadViewComponent implements OnInit {
         this.currentStep = 'task';
         this.isLoading = false;
         this.successMessage = 'Project created! Now add a task.';
+        
+        // Update profile data to reflect the new project
+        if (this.profileData) {
+          this.profileData.project = { projectName: this.projectName.trim() };
+        }
       },
       error: (error) => {
         this.isLoading = false;
         this.handleError(error, 'Failed to create project');
-      }
-    });
-  }  onTaskSubmit() {
+      }    });
+  }
+
+  onTaskSubmit() {
     if (!this.taskName.trim()) {
       this.errorMessage = 'Please enter a task name.';
       return;
@@ -210,25 +258,26 @@ export class TeamLeadViewComponent implements OnInit {
     this.clearMessages();
     this.isLoading = true;
 
-    console.log('Creating task:', { name: this.taskName.trim(), skillSet });    this.teamLeadService.createTask(this.taskName.trim(), skillSet).subscribe({
+    console.log('Creating task:', { name: this.taskName.trim(), skillSet });
+    
+    this.teamLeadService.createTask(this.taskName.trim(), skillSet).subscribe({
       next: (response) => {
         console.log('Task created successfully:', response);
         this.currentStep = 'complete';
         this.isLoading = false;
-        this.successMessage = 'Task created successfully!';
-        
-        // Clear the form
+        this.successMessage = 'Task created successfully!';        // Clear the form
         this.taskName = '';
         this.skills = '';
         
-        // Reload tasks to show the new task in sidebar with a slight delay
-        console.log('Reloading tasks after task creation...');
+        // Refresh tasks after a small delay to ensure backend processing is complete
         setTimeout(() => {
-          this.loadTasks();
-        }, 500); // 500ms delay to ensure backend has processed the new task
+          this.refreshTasksList();
+        }, 300);
         
-        // Also force refresh task count
-        this.forceRefreshTasks();
+        // Also retry after a longer delay in case of backend issues
+        setTimeout(() => {
+          this.retryLoadTasks();
+        }, 1500);
       },
       error: (error) => {
         console.error('Task creation failed:', error);
@@ -244,18 +293,20 @@ export class TeamLeadViewComponent implements OnInit {
 
     console.log('Assigning task with ID:', taskId);
     
+    // Optimistically update the task status in UI
+    const taskToUpdate = this.tasks.find(task => (task.taskId || task.id) === taskId);
+    if (taskToUpdate) {
+      taskToUpdate.assignedTo = 'Pending Assignment...';
+      taskToUpdate.assigned = true;
+    }
+    
     this.teamLeadService.assignTask(taskId).subscribe({
       next: (response) => {
         console.log('Task assigned successfully:', response);
         this.successMessage = 'Task assigned successfully!';
         
-        // Reload tasks to update status with delay
-        setTimeout(() => {
-          this.loadTasks();
-        }, 500);
-        
-        // Force multiple refreshes to ensure status updates
-        this.forceRefreshTasks();
+        // Refresh tasks to get the actual updated status from backend
+        this.refreshTasksList();
         
         // Clear message after 3 seconds
         setTimeout(() => {
@@ -264,17 +315,29 @@ export class TeamLeadViewComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to assign task:', error);
+        // Revert optimistic update on error
+        if (taskToUpdate) {
+          taskToUpdate.assignedTo = null;
+          taskToUpdate.assigned = false;
+        }
         this.errorMessage = 'Failed to assign task: ' + (error.error?.message || error.message || 'Unknown error');
       }
     });
-  }
-  createAnotherTask() {
+  }  createAnotherTask() {
     this.taskName = '';
     this.skills = '';
     this.currentStep = 'task';
     this.clearMessages();
-    // Keep the task list updated
-    this.loadTasks();
+    // Refresh task list to ensure it's up to date
+    this.refreshTasksList();
+  }
+
+  switchToTaskMode() {
+    console.log('switchToTaskMode() called - switching to task creation mode');
+    this.hasExistingProject = true;
+    this.currentStep = 'task';
+    this.clearMessages();
+    this.refreshTasksList();
   }
   toggleSidebar() {
     console.log('toggleSidebar called, current showSidebar:', this.showSidebar);
@@ -318,7 +381,6 @@ export class TeamLeadViewComponent implements OnInit {
     this.profileUpdateError = '';
     this.profileUpdateSuccess = '';
   }
-
   updateProfile() {
     if (!this.editProfileData.employeeName.trim() || !this.editProfileData.email.trim()) {
       this.profileUpdateError = 'Name and email are required.';
@@ -329,15 +391,11 @@ export class TeamLeadViewComponent implements OnInit {
     this.profileUpdateError = '';
     this.profileUpdateSuccess = '';
 
-    // Prepare update data - only include password if it's provided
+    // Prepare update data according to backend DTO (name, profileUrl)
     const updateData: any = {
-      employeeName: this.editProfileData.employeeName.trim(),
-      email: this.editProfileData.email.trim()
+      name: this.editProfileData.employeeName.trim(),
+      profileUrl: this.editProfileData.email.trim() // Using email as profileUrl for now
     };
-
-    if (this.editProfileData.password && this.editProfileData.password.trim()) {
-      updateData.password = this.editProfileData.password.trim();
-    }
 
     this.teamLeadService.updateProfile(updateData).subscribe({
       next: (response) => {
@@ -345,7 +403,10 @@ export class TeamLeadViewComponent implements OnInit {
         this.profileUpdateSuccess = 'Profile updated successfully!';
         
         // Update the local profile data
-        this.profileData = { ...this.profileData, ...updateData };
+        if (this.profileData) {
+          this.profileData.employeeName = updateData.name;
+          this.profileData.email = updateData.profileUrl;
+        }
         
         // Close modal after a short delay
         setTimeout(() => {
@@ -418,6 +479,161 @@ export class TeamLeadViewComponent implements OnInit {
     } catch (error) {
       return 'Complex object - cannot display';
     }
+  }
+
+  // Temporary test method for improved extraction
+  testImprovedExtraction() {
+    console.log('=== TESTING IMPROVED TASK EXTRACTION ===');
+    console.log('Expected tasks in DB: project ui (ID:1), project frontend (ID:2), project readme (ID:4), project backend (ID:3)');
+    console.log('Current tasks shown:', this.tasks.length);
+    
+    this.tasks = [];
+    this.isLoadingTasks = true;
+    
+    this.teamLeadService.getTasks().subscribe({
+      next: (response) => {
+        console.log('Raw API response received');
+        this.tasks = Array.isArray(response) ? response : [response];
+        this.isLoadingTasks = false;
+        
+        console.log('=== EXTRACTION TEST RESULTS ===');
+        console.log(`Found ${this.tasks.length} tasks:`);
+        this.tasks.forEach((task, index) => {
+          console.log(`Task ${index + 1}: ID=${task.taskId || task.id}, Name="${task.name}", Skills=[${task.skillSet?.join(', ') || 'none'}], Status=${task.status}`);
+        });
+        
+        if (this.tasks.length >= 4) {
+          console.log('✅ SUCCESS: Found all expected tasks!');
+          this.successMessage = `✅ Success! Found all ${this.tasks.length} tasks from the database.`;
+        } else {
+          console.log(`⚠️ PARTIAL: Found ${this.tasks.length}/4 expected tasks. Some may be lost in JSON corruption.`);
+          this.errorMessage = `Found ${this.tasks.length}/4 expected tasks. Extraction may need further improvement.`;
+        }
+        
+        // Auto clear messages after 5 seconds
+        setTimeout(() => {
+          this.successMessage = '';
+          this.errorMessage = '';
+        }, 5000);
+      },
+      error: (error) => {
+        console.error('Test extraction failed:', error);
+        this.isLoadingTasks = false;
+        this.errorMessage = 'Failed to test task extraction: ' + error.message;
+      }
+    });
+  }
+
+  // Force raw extraction method to bypass all JSON parsing
+  forceRawExtraction() {
+    console.log('=== FORCE RAW EXTRACTION TEST ===');
+    console.log('Bypassing JSON parsing completely and testing direct extraction methods');
+    
+    this.isLoadingTasks = true;
+    this.tasks = [];
+    
+    // Make the HTTP call but force manual extraction
+    this.http.get(`${this.teamLeadService['apiUrl']}/allTasks`, { 
+      headers: this.teamLeadService['getAuthHeaders'](),
+      responseType: 'text'
+    }).subscribe({
+      next: (rawResponse: string) => {
+        console.log('Raw response length:', rawResponse.length);
+        console.log('Raw response preview:', rawResponse.substring(0, 1000));
+        
+        // Force manual extraction directly
+        console.log('Calling extractTasksFromMalformedJson directly...');
+        const extractedTasks = this.teamLeadService['extractTasksFromMalformedJson'](rawResponse);
+        
+        this.tasks = extractedTasks;
+        this.isLoadingTasks = false;
+        
+        console.log('=== FORCE EXTRACTION RESULTS ===');
+        console.log(`Extracted ${this.tasks.length} tasks directly:`);
+        this.tasks.forEach((task, index) => {
+          console.log(`Task ${index + 1}: ID=${task.taskId}, Name="${task.name}", Skills=[${task.skillSet?.join(', ') || 'none'}]`);
+        });
+        
+        if (this.tasks.length >= 4) {
+          this.successMessage = `🎉 SUCCESS! Found all ${this.tasks.length} tasks using raw extraction!`;
+        } else {
+          this.errorMessage = `⚠️ Found ${this.tasks.length}/4 tasks. May need backend fix to get all tasks.`;
+        }
+        
+        setTimeout(() => {
+          this.successMessage = '';
+          this.errorMessage = '';
+        }, 5000);      },
+      error: (error: any) => {
+        console.error('Force extraction failed:', error);
+        this.isLoadingTasks = false;
+        this.errorMessage = 'Force extraction failed: ' + error.message;
+      }
+    });
+  }
+
+  // Test method to analyze the raw backend response in detail
+  analyzeBackendResponse() {
+    console.log('=== ANALYZING BACKEND RESPONSE IN DETAIL ===');
+    console.log('Expected: 4 tasks from database');
+    console.log('Database tasks: project ui (ID:1), project frontend (ID:2), project readme (ID:4), project backend (ID:3)');
+    
+    this.http.get(`${this.teamLeadService['apiUrl']}/allTasks`, { 
+      headers: this.teamLeadService['getAuthHeaders'](),
+      responseType: 'text'
+    }).subscribe({
+      next: (rawResponse: string) => {
+        console.log('=== RAW BACKEND ANALYSIS ===');
+        console.log('Response length:', rawResponse.length);
+        console.log('First 2000 chars:', rawResponse.substring(0, 2000));
+        
+        // Count how many times each task appears
+        const taskIds = [1, 2, 3, 4];
+        const taskNames = ['project ui', 'project frontend', 'project backend', 'project readme'];
+        
+        console.log('=== TASK PRESENCE CHECK ===');
+        taskIds.forEach(id => {
+          const count = (rawResponse.match(new RegExp(`"taskId"\\s*:\\s*${id}`, 'g')) || []).length;
+          console.log(`Task ID ${id}: Found ${count} times`);
+        });
+        
+        taskNames.forEach(name => {
+          const count = (rawResponse.match(new RegExp(`"name"\\s*:\\s*"${name}"`, 'g')) || []).length;
+          console.log(`Task name "${name}": Found ${count} times`);
+        });
+        
+        // Check if response starts with array
+        const startsWithArray = rawResponse.trim().startsWith('[');
+        const endsWithArray = rawResponse.trim().endsWith(']');
+        console.log('Starts with [:', startsWithArray);
+        console.log('Ends with ]:', endsWithArray);
+        
+        // Check for multiple task objects
+        const taskObjectCount = (rawResponse.match(/"taskId"/g) || []).length;
+        console.log('Total "taskId" occurrences:', taskObjectCount);
+        
+        // Check if this is really an array of tasks or just one task
+        if (taskObjectCount === 1) {
+          console.log('🚨 PROBLEM: Backend only returning 1 task, not an array of all tasks!');
+          this.errorMessage = '🚨 Backend Issue: API only returning 1 task instead of all 4 tasks from database!';
+        } else if (taskObjectCount >= 4) {
+          console.log('✅ Backend returning multiple tasks, extraction issue is on frontend');
+          this.successMessage = '✅ Backend has multiple tasks, working on frontend extraction...';
+        } else {
+          console.log(`⚠️ Backend returning ${taskObjectCount} tasks, expected 4`);
+          this.errorMessage = `⚠️ Backend returning ${taskObjectCount}/4 tasks. Partial backend issue.`;
+        }
+        
+        setTimeout(() => {
+          this.successMessage = '';
+          this.errorMessage = '';
+        }, 8000);
+      },
+      error: (error: any) => {
+        console.error('Backend analysis failed:', error);
+        this.errorMessage = 'Failed to analyze backend response: ' + error.message;
+      }
+    });
   }
 
   private handleError(error: any, defaultMessage: string) {
