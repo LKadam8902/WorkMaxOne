@@ -48,11 +48,14 @@ export class BenchedEmployeeViewComponent implements OnInit {
     this.loadTasks();
     this.loadProfile();
   }
+
   isLoggedIn(): boolean {
     const token = localStorage.getItem('token');
     console.log('Checking login status. Token:', token ? 'exists' : 'not found');
     return !!token;
-  }  loadTasks() {
+  }
+
+  loadTasks() {
     console.log('Loading assigned tasks for benched employee...');
     this.isLoadingTasks = true;
     this.errorMessage = '';
@@ -117,13 +120,21 @@ export class BenchedEmployeeViewComponent implements OnInit {
     this.benchedEmployeeService.addSkills(skillSet).subscribe({
       next: () => {
         this.newSkills = '';
+        this.successMessage = 'Skills added successfully';
+        this.errorMessage = '';
         this.loadTasks();
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
       },
       error: (error) => {
-        this.errorMessage = 'Failed to add skills';
+        console.error('Error adding skills:', error);
+        alert('Failed to add skills: ' + (error.error?.message || error.message || 'Unknown error'));
+        this.successMessage = '';
       }
     });
   }
+
   updateTaskStatus(taskId: number, status: string) {
     console.log('Updating task status:', taskId, 'to', status);
     this.errorMessage = '';
@@ -142,7 +153,7 @@ export class BenchedEmployeeViewComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to update task status:', error);
-        this.errorMessage = 'Failed to update task status: ' + (error.error?.message || error.message || 'Unknown error');
+        alert('Failed to update task status: ' + (error.error?.message || error.message || 'Unknown error'));
       }
     });
   }
@@ -182,4 +193,4 @@ export class BenchedEmployeeViewComponent implements OnInit {
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
   }
-} 
+}

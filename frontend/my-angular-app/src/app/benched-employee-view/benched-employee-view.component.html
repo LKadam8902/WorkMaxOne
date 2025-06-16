@@ -1,46 +1,77 @@
 <div class="benched-employee-dashboard">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h1 class="page-title sidebar-title">Employee Dashboard</h1>
+  </div>
+
   <!-- Header -->
   <div class="header">
-    <div class="logo-section">
-      <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
-      <h1 class="page-title">Employee Dashboard</h1>
-    </div>
-    
-    <div class="profile-section">
-      <div class="profile-dropdown">
-        <div class="profile-trigger" (click)="toggleDropdown()">
-          <img src="./icon.jpg" alt="Profile" class="profile-icon" />
-          <span class="profile-name">{{ profileData?.employeeName || 'Employee' }}</span>
-          <span class="dropdown-arrow" [class.open]="showDropdown">▼</span>
-        </div>
-        <div class="dropdown-menu" *ngIf="showDropdown">
-          <div class="dropdown-header">
-            <img src="./icon.jpg" alt="Profile" class="dropdown-profile-icon" />
-            <div class="profile-info">
-              <h3>{{ profileData?.employeeName || 'Employee' }}</h3>
-              <p>{{ profileData?.email || 'No email' }}</p>
-            </div>
+    <div class="navbar">
+      <div class="logo-section">
+        <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
+      </div>
+      <div class="profile-dropdown-container">
+        <div class="profile-dropdown">
+          <div class="profile-trigger" (click)="toggleDropdown()">
+            <img src="./icon.jpg" alt="Profile" class="profile-icon" />
+            <span class="profile-name">{{ profileData?.employeeName || 'Employee' }}</span>
+            <span class="dropdown-arrow" [class.open]="showDropdown">▼</span>
           </div>
-          <div class="dropdown-divider"></div>
-          <button class="dropdown-button logout-btn" (click)="logout()">
-            <span class="button-icon">🚪</span>
-            Logout
-          </button>
+          <div class="dropdown-menu" *ngIf="showDropdown">
+            <div class="dropdown-header">
+              <img src="./icon.jpg" alt="Profile" class="dropdown-profile-icon" />
+              <div class="profile-info">
+                <h3>{{ profileData?.employeeName || 'Employee' }}</h3>
+                <p>{{ profileData?.email || 'No email' }}</p>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-button logout-btn" (click)="logout()">
+              <span class="button-icon">🚪</span>
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Messages -->
-  <div *ngIf="errorMessage" class="error-message">
-    {{ errorMessage }}
-  </div>
+  <!-- Removed inline error message display as errors are shown in popups -->
   <div *ngIf="successMessage" class="success-message">
     {{ successMessage }}
   </div>
 
   <!-- Main Content -->
   <div class="main-content">
+    <!-- Skills Section -->
+    <div class="section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="section-icon">🛠️</span>
+          My Skills
+        </h2>
+      </div>
+      
+      <div class="skills-form">
+        <div class="form-group">
+          <label for="newSkills">Add New Skills</label>
+          <input 
+            type="text" 
+            id="newSkills"
+            [(ngModel)]="newSkills" 
+            placeholder="Enter skills separated by commas (e.g., JavaScript, React, Node.js)"
+            class="skills-input" />
+        </div>
+        <button 
+          (click)="addSkills()" 
+          class="add-skills-btn"
+          [disabled]="!newSkills.trim() || isLoading">
+          {{ isLoading ? 'Adding...' : 'Add Skills' }}
+        </button>
+      </div>
+    </div>
+
     <!-- My Assigned Tasks Section -->
     <div class="section">
       <div class="section-header">
@@ -106,34 +137,6 @@
         <h3>No Assigned Tasks</h3>
         <p>You don't have any tasks assigned to you yet.</p>
         <p>Tasks will appear here once they are assigned by your team lead.</p>
-      </div>
-    </div>
-
-    <!-- Skills Section -->
-    <div class="section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <span class="section-icon">🛠️</span>
-          My Skills
-        </h2>
-      </div>
-      
-      <div class="skills-form">
-        <div class="form-group">
-          <label for="newSkills">Add New Skills</label>
-          <input 
-            type="text" 
-            id="newSkills"
-            [(ngModel)]="newSkills" 
-            placeholder="Enter skills separated by commas (e.g., JavaScript, React, Node.js)"
-            class="skills-input" />
-        </div>
-        <button 
-          (click)="addSkills()" 
-          class="add-skills-btn"
-          [disabled]="!newSkills.trim() || isLoading">
-          {{ isLoading ? 'Adding...' : 'Add Skills' }}
-        </button>
       </div>
     </div>
   </div>
