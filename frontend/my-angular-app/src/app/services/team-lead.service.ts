@@ -227,9 +227,53 @@ export class TeamLeadService {
         throw error;
       })
     );
-  }
-  assignTask(taskId: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/assignTask/${taskId}`, {}, { headers: this.getAuthHeaders() });
+  }  assignTask(taskId: number): Observable<any> {
+    console.log(`TeamLeadService.assignTask() called with taskId: ${taskId}`);
+    console.log('API URL:', `${this.apiUrl}/assignTask/${taskId}`);
+    console.log('Auth headers:', this.getAuthHeaders());
+      // Verify token exists before making the call
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('No authentication token found - task assignment may fail');
+    } else {
+      console.log('Token found for assignment:', token.substring(0, 50) + '...');
+    }
+      return this.http.put(`${this.apiUrl}/assignTask/${taskId}`, {}, { 
+      headers: this.getAuthHeaders(),
+      responseType: 'text' // Get response as text to handle potential issues
+    }).pipe(
+      map((response: any) => {
+        console.log('assignTask - Raw response:', response);
+        console.log('assignTask - Response type:', typeof response);
+        console.log('assignTask - Response length:', response?.length);
+        
+        try {
+          // Try to parse as JSON if possible
+          const parsed = response ? JSON.parse(response) : { message: 'Task assigned successfully' };
+          console.log('assignTask - Parsed response:', parsed);
+          
+          // Check if the response indicates actual assignment or just acknowledgment
+          if (parsed.message && parsed.message.includes('successfully')) {
+            console.log('assignTask - Assignment acknowledged by backend');
+          } else {
+            console.warn('assignTask - Unexpected response format:', parsed);
+          }
+          
+          return parsed;
+        } catch (e) {
+          // If it's not JSON, return as is
+          console.log('assignTask - Response is not JSON, using as is:', response);
+          return { message: response || 'Task assigned successfully' };
+        }
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('assignTask - Error:', error);
+        console.error('assignTask - Error status:', error.status);
+        console.error('assignTask - Error body:', error.error);
+        console.error('assignTask - Error URL:', error.url);
+        throw error;
+      })
+    );
   }
 
   updateProfile(profileData: any): Observable<any> {
@@ -560,5 +604,60 @@ export class TeamLeadService {
     console.log('fixCircularReferenceAndExtract - Total unique tasks found:', tasks.length);
     console.log('fixCircularReferenceAndExtract - Task IDs found:', Array.from(foundTaskIds));
     return tasks;
+  }
+
+  // Method to get available benched employees for task assignment
+  getAvailableEmployees(): Observable<any> {
+    console.log('TeamLeadService.getAvailableEmployees() called');
+    return this.http.get(`${this.apiUrl}/availableEmployees`, { 
+      headers: this.getAuthHeaders(),
+      responseType: 'text'
+    }).pipe(
+      map((response: any) => {
+        console.log('getAvailableEmployees - Raw response:', response);
+        try {
+          const parsed = JSON.parse(response);
+          console.log('getAvailableEmployees - Parsed response:', parsed);
+          return parsed;
+        } catch (e) {
+          console.warn('getAvailableEmployees - Failed to parse response:', e);
+          return [];
+        }
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('getAvailableEmployees - Error:', error);
+        // Return empty array if endpoint doesn't exist
+        return of([]);
+      })
+    );
+  }
+
+  // Alternative assignment method that might work better
+  assignTaskAlternative(taskId: number, employeeId?: number): Observable<any> {
+    console.log(`TeamLeadService.assignTaskAlternative() called with taskId: ${taskId}, employeeId: ${employeeId}`);
+    
+    const body = employeeId ? { employeeId } : {};
+    console.log('Assignment request body:', body);
+    
+    return this.http.post(`${this.apiUrl}/assignTask/${taskId}`, body, { 
+      headers: this.getAuthHeaders(),
+      responseType: 'text'
+    }).pipe(
+      map((response: any) => {
+        console.log('assignTaskAlternative - Raw response:', response);
+        try {
+          const parsed = JSON.parse(response);
+          console.log('assignTaskAlternative - Parsed response:', parsed);
+          return parsed;
+        } catch (e) {
+          console.log('assignTaskAlternative - Response is not JSON:', response);
+          return { message: response || 'Task assigned successfully' };
+        }
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('assignTaskAlternative - Error:', error);
+        throw error;
+      })
+    );
   }
 }

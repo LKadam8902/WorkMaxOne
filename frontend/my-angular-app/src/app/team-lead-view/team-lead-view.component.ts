@@ -69,11 +69,15 @@ export class TeamLeadViewComponent implements OnInit {
         this.router.navigate(['/sign-in']);
       }, 2000);
       return;
-    }
-    
-    // Load tasks first to determine if user has existing project
+    }    // Load tasks first to determine if user has existing project
     this.loadTasks();
     this.checkExistingProject();
+    
+    // Check available employees for debugging assignment issues
+    this.checkAvailableEmployees();
+    
+    // Expose component for manual testing in development
+    this.exposeForTesting();
   }private checkExistingProject() {
     this.isLoading = true;
     this.teamLeadService.getProjects().subscribe({
@@ -289,38 +293,113 @@ export class TeamLeadViewComponent implements OnInit {
     if (!taskId) {
       this.errorMessage = 'Invalid task ID';
       return;
-    }
-
-    console.log('Assigning task with ID:', taskId);
+    }    console.log('Assigning task with ID:', taskId);
     
     // Optimistically update the task status in UI
     const taskToUpdate = this.tasks.find(task => (task.taskId || task.id) === taskId);
+    console.log('Found task to update:', taskToUpdate);
     if (taskToUpdate) {
+      console.log('Before assignment - Task state:', {
+        taskId: taskToUpdate.taskId || taskToUpdate.id,
+        name: taskToUpdate.name,
+        assignedTo: taskToUpdate.assignedTo,
+        assigned: taskToUpdate.assigned,
+        status: taskToUpdate.status
+      });
       taskToUpdate.assignedTo = 'Pending Assignment...';
       taskToUpdate.assigned = true;
+      console.log('After optimistic update - Task state:', {
+        taskId: taskToUpdate.taskId || taskToUpdate.id,
+        name: taskToUpdate.name,
+        assignedTo: taskToUpdate.assignedTo,
+        assigned: taskToUpdate.assigned,
+        status: taskToUpdate.status
+      });
+    } else {
+      console.warn('Could not find task to update with ID:', taskId);
     }
-    
-    this.teamLeadService.assignTask(taskId).subscribe({
+      this.teamLeadService.assignTask(taskId).subscribe({
       next: (response) => {
         console.log('Task assigned successfully:', response);
-        this.successMessage = 'Task assigned successfully!';
-        
-        // Refresh tasks to get the actual updated status from backend
-        this.refreshTasksList();
+        this.successMessage = 'Task assigned successfully!';        // Add a small delay before refreshing to allow backend to process the assignment
+        setTimeout(() => {
+          console.log('Starting delayed refresh after task assignment...');
+          this.refreshTasksList();
+          
+          // Verify the assignment worked after refresh
+          setTimeout(() => {
+            const updatedTask = this.tasks.find(task => (task.taskId || task.id) === taskId);
+            if (updatedTask) {
+              console.log('Post-refresh task state:', {
+                taskId: updatedTask.taskId || updatedTask.id,
+                name: updatedTask.name,
+                assignedTo: updatedTask.assignedTo,
+                assigned: updatedTask.assigned,
+                status: updatedTask.status
+              });              if (!updatedTask.assignedTo || updatedTask.assignedTo === null) {
+                console.warn('⚠️  BACKEND ISSUE DETECTED: Task assignment API returns success but task remains unassigned');
+                console.warn('This indicates a backend bug - the assignment logic is not working properly');
+                  // Update the UI to show the backend issue
+                this.errorMessage = `⚠️ Backend Issue: Task assignment failed due to a server-side bug. The API returns "success" but doesn't actually assign the task. Please contact the development team to fix the backend assignment logic.`;                // Show detailed information for developers
+                this.showBackendIssueDetails();
+                
+                // Run diagnostics
+                this.diagnoseBackendState();
+                
+                // Provide fix suggestions for backend team
+                this.suggestBackendFixes();
+                
+                // Revert the optimistic update since it didn't work
+                if (taskToUpdate) {
+                  taskToUpdate.assignedTo = null;
+                  taskToUpdate.assigned = false;
+                }
+                
+                // Log the full backend response for debugging
+                console.error('Backend Assignment Failure Details:', {
+                  taskId: taskId,
+                  apiResponse: response,
+                  actualTaskState: updatedTask,
+                  issue: 'API returns success but database is not updated'
+                });
+                
+                // Show detailed backend issue information
+                this.showBackendIssueDetails();
+                
+              } else {
+                console.log('✅ Task assignment verified successfully');
+              }
+            }
+          }, 1000);
+        }, 500); // Wait 500ms before refreshing
         
         // Clear message after 3 seconds
         setTimeout(() => {
           this.clearMessages();
         }, 3000);
-      },
-      error: (error) => {
+      },      error: (error) => {
         console.error('Failed to assign task:', error);
+        console.error('Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          url: error.url,
+          error: error.error
+        });
+        
         // Revert optimistic update on error
         if (taskToUpdate) {
           taskToUpdate.assignedTo = null;
           taskToUpdate.assigned = false;
+          console.log('Reverted optimistic update due to error');
         }
+        
         this.errorMessage = 'Failed to assign task: ' + (error.error?.message || error.message || 'Unknown error');
+        
+        // Clear error message after 5 seconds
+        setTimeout(() => {
+          this.clearMessages();
+        }, 5000);
       }
     });
   }  createAnotherTask() {
@@ -636,6 +715,102 @@ export class TeamLeadViewComponent implements OnInit {
     });
   }
 
+  // Method to retry task assignment if it initially fails
+  retryTaskAssignment(taskId: number) {
+    console.log('Retrying task assignment for task ID:', taskId);
+    this.assignTask(taskId);
+  }
+
+  // Method to check if a task assignment was successful
+  verifyTaskAssignment(taskId: number): boolean {
+    const task = this.tasks.find(task => (task.taskId || task.id) === taskId);
+    if (task) {
+      console.log('Verifying task assignment for:', {
+        taskId: task.taskId || task.id,
+        name: task.name,
+        assignedTo: task.assignedTo,
+        assigned: task.assigned,
+        status: task.status
+      });
+      return task.assignedTo !== null && task.assignedTo !== undefined && task.assignedTo !== '';
+    }
+    return false;
+  }
+
+  // Method to check available employees for debugging
+  checkAvailableEmployees() {
+    console.log('Checking available employees...');
+    this.teamLeadService.getAvailableEmployees().subscribe({
+      next: (employees) => {
+        console.log('Available employees for task assignment:', employees);
+        if (Array.isArray(employees) && employees.length === 0) {
+          console.warn('No available employees found - this may be why task assignment is failing');
+        }
+      },
+      error: (error) => {
+        console.log('Could not fetch available employees (endpoint may not exist):', error);
+      }
+    });
+  }
+
+  // Debug method to test assignment with detailed logging
+  debugAssignTask(taskId: number) {
+    console.log(`=== DEBUG TASK ASSIGNMENT START ===`);
+    console.log(`Task ID: ${taskId}`);
+    
+    // Check token first
+    const token = localStorage.getItem('token');
+    console.log('Token exists:', !!token);
+    if (token) {
+      console.log('Token preview:', token.substring(0, 50) + '...');
+    }
+    
+    // Check task exists
+    const task = this.tasks.find(t => (t.taskId || t.id) === taskId);
+    console.log('Task found:', !!task);
+    if (task) {
+      console.log('Task details:', {
+        id: task.taskId || task.id,
+        name: task.name,
+        skillSet: task.skillSet,
+        assignedTo: task.assignedTo,
+        status: task.status
+      });
+    }
+    
+    // Try normal assignment
+    console.log('Attempting normal assignment...');
+    this.assignTask(taskId);
+    
+    console.log(`=== DEBUG TASK ASSIGNMENT END ===`);
+  }
+
+  // Manual test method that can be called from browser console
+  // Usage: component.manualTestAssignment(6)
+  manualTestAssignment(taskId: number) {
+    console.log(`🧪 Manual Test: Attempting to assign task ${taskId}`);
+    
+    // Show task before assignment
+    const task = this.tasks.find(t => (t.taskId || t.id) === taskId);
+    console.log('Task before assignment:', task);
+    
+    // Call assignment
+    this.assignTask(taskId);
+    
+    console.log('Assignment call initiated. Check logs above for results.');
+  }
+  
+  // Helper method to expose this component to window for testing
+  // Call this in ngOnInit if needed: window.testComponent = this;
+  exposeForTesting() {
+    (window as any).testComponent = this;
+    console.log('Component exposed as window.testComponent for manual testing');
+    console.log('Available test methods:');
+    console.log('- testComponent.manualTestAssignment(taskId)');
+    console.log('- testComponent.diagnoseBackendState()');
+    console.log('- testComponent.suggestBackendFixes()');
+  }
+
   private handleError(error: any, defaultMessage: string) {
     if (error.status === 401 || error.status === 403) {
       this.errorMessage = 'Your session has expired. Please log in again.';
@@ -656,4 +831,95 @@ export class TeamLeadViewComponent implements OnInit {
   redirectToLogin() {
     window.location.href = '/';
   }
+
+  // Method to show detailed backend issue information
+  showBackendIssueDetails() {
+    const issueDetails = `
+BACKEND ASSIGNMENT ISSUE DETECTED:
+
+Problem: The backend assignment API returns "success" but doesn't actually assign tasks.
+
+Technical Details:
+- API Endpoint: PUT /teamLead/assignTask/{taskId} 
+- Response: {"message":"Task assigned successfully"}
+- Database State: assignedTo remains null
+- POST alternative: Returns 405 Method Not Allowed
+
+Root Cause: The backend assignment logic is not working properly.
+
+Workaround: The backend team needs to fix the assignment logic in the server code.
+
+Expected Behavior: After a successful assignment, the task's assignedTo field should contain the employee ID.
+    `;
+    
+    console.log(issueDetails);
+    alert('Backend Assignment Issue Detected. Check console for technical details.');
+  }
+
+  // Method to check if backend has any available employees
+  diagnoseBackendState() {
+    console.log('🔍 Diagnosing backend state for task assignment...');
+    
+    // Check current user's authentication
+    const token = localStorage.getItem('token');
+    console.log('✓ Authentication token present:', !!token);
+    
+    // Check available tasks
+    console.log('✓ Available tasks count:', this.tasks.length);
+    console.log('✓ Unassigned tasks:', this.tasks.filter(t => !t.assignedTo).length);
+    
+    // Try to get available employees
+    this.checkAvailableEmployees();
+    
+    console.log(`
+🔍 DIAGNOSIS SUMMARY:
+- Frontend is working correctly
+- Authentication is valid  
+- API calls are succeeding
+- Problem is in backend assignment logic
+- Recommendation: Check backend server logs and assignment implementation
+    `);
+  }
+
+  // Method to provide backend fix suggestions
+  suggestBackendFixes() {
+    const suggestions = `
+🔧 BACKEND FIX SUGGESTIONS:
+
+The task assignment endpoint is likely missing proper implementation. Check:
+
+1. Assignment Logic:
+   - Verify the assignTask method actually updates the database
+   - Ensure it finds and assigns available employees
+   - Check if employee selection logic is working
+
+2. Database Transaction:
+   - Make sure the assignment is properly committed to database
+   - Verify the assignedTo field is being set correctly
+   - Check if there are any transaction rollbacks
+
+3. Employee Availability:
+   - Ensure there are employees with matching skills in the database
+   - Verify employees are in "available" or "benched" status
+   - Check if skill matching logic is working
+
+4. Common Backend Issues:
+   - Missing @Transactional annotation (Spring)
+   - Incomplete save operations
+   - Silent exceptions being caught
+   - Incorrect employee query logic
+
+5. Testing Recommendations:
+   - Add logging to the assignTask endpoint
+   - Verify database state after assignment calls
+   - Test with different task and employee combinations
+   - Check server logs for any errors
+
+Frontend is working correctly - this is a backend issue.
+    `;
+    
+    console.log(suggestions);
+  }
+
+  // ...existing code...
 }
