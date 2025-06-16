@@ -4,15 +4,64 @@
   border-bottom-right-radius: .3rem;
 }
 
-@media (min-width: 768px) {
-  .gradient-form {
-    height: 100vh !important;
-  }
+.gradient-form {
+  height: 100vh !important;
+  overflow: hidden;
 }
 
 .container {
   max-width: 100%;
-  padding-top: rem !important;
+  padding: 0 !important;
+  height: 100vh;
+}
+
+.card {
+  height: 100vh;
+  border-radius: 0 !important;
+}
+
+.row {
+  height: 100vh;
+  margin: 0;
+}
+
+.col-lg-6 {
+  padding: 0;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+  padding: 1rem 2rem !important;
+}
+
+form {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 991.98px) {
+  .card-body {
+    padding: 1rem !important;
+  }
+  
+  .col-lg-6:first-child {
+    order: 1;
+  }
+  
+  .col-lg-6:last-child {
+    order: 2;
+    min-height: 40vh;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .card-body {
+    padding: 0.75rem !important;
+  }
 }
 
 .btn.gradient-custom-2 {
