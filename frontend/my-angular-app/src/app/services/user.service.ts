@@ -9,8 +9,17 @@ export class UserService {
   private apiUrl = 'http://localhost:8000';
 
   constructor(private http: HttpClient) { }
+  
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
+
+  private getAdminAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('adminToken');
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
@@ -24,15 +33,15 @@ export class UserService {
       email: userData.email,
       password: userData.password,
       isTeamLead: userData.role === 'team-lead'
-    };
-    return this.http.put(`${this.apiUrl}/employee/create`, requestData);
+    };    return this.http.put(`${this.apiUrl}/employee/create`, requestData);
   }
+  
   getPendingUsers(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/admin/view/getApprovalYetUser`, { headers: this.getAuthHeaders() });
+    return this.http.get(`${this.apiUrl}/admin/view/getApprovalYetUser`, { headers: this.getAdminAuthHeaders() });
   }
 
   approveUser(userId: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/admin/view/ApproveEmployee/${userId}`, {}, { headers: this.getAuthHeaders() });
+    return this.http.put(`${this.apiUrl}/admin/view/ApproveEmployee/${userId}`, {}, { headers: this.getAdminAuthHeaders() });
   }
   teamLeadLogin(email: string, password: string): Observable<any> {
     const loginData = {
@@ -81,7 +90,6 @@ export class UserService {
       return null;
     }
   }
-
   validateTokenForRole(expectedRole: string): boolean {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -92,13 +100,22 @@ export class UserService {
     return role === expectedRole;
   }
 
+  validateAdminToken(): boolean {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      return false;
+    }
+    
+    const role = this.extractRoleFromToken(token);
+    return role === 'ADMIN';
+  }
+
   isTokenValid(): boolean {
     const token = localStorage.getItem('token');
     if (!token) {
       return false;
     }
-    
-    try {
+      try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const expiration = payload.exp * 1000;
       const now = Date.now();
@@ -110,7 +127,28 @@ export class UserService {
     }
   }
 
+  isAdminTokenValid(): boolean {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      return false;
+    }
+    
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const expiration = payload.exp * 1000;
+      const now = Date.now();
+      
+      return expiration > now;
+    } catch (error) {
+      console.error('Invalid admin token format:', error);
+      return false;
+    }
+  }
   logout(): void {
     localStorage.removeItem('token');
+  }
+
+  adminLogout(): void {
+    localStorage.removeItem('adminToken');
   }
 }
