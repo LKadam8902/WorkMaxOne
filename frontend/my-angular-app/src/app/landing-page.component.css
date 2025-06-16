@@ -5,7 +5,7 @@
   flex-direction: column;
   font-family: 'Inter', sans-serif;
   background-color: #f9fafb;
-  padding: 0 1.5rem;
+  /* padding: 0 0.15rem; */
 }
 
 /* Navbar */
@@ -13,19 +13,23 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem 0;
+  /* padding: 1.5rem 0; */
+  background: linear-gradient(to left, #ee7724, #d8363a, #dd3675, #b44593);
 }
 
 .logo {
   height: 3.5rem;
+  margin-left: 2rem;
 }
 
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 2rem;
+  gap: 2.5rem; /* increased spacing between links */
   font-weight: 500;
+  margin-right: 2rem; /* shift the group slightly to the left */
 }
+
 
 .nav-links a {
   text-decoration: none;

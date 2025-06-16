@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -13,7 +13,7 @@ import { UserService } from '../services/user.service';
   styleUrls: ['./team-lead-view.component.css'],
   imports: [CommonModule, FormsModule]
 })
-export class TeamLeadViewComponent implements OnInit {
+export class TeamLeadViewComponent implements OnInit, OnDestroy {
   // Form data
   projectName = '';
   taskName = '';
@@ -75,6 +75,9 @@ export class TeamLeadViewComponent implements OnInit {
     
     // Check available employees for debugging assignment issues
     this.checkAvailableEmployees();
+    
+    // Start auto-refresh for real-time updates
+    this.startAutoRefresh();
     
     // Expose component for manual testing in development
     this.exposeForTesting();
@@ -533,13 +536,98 @@ export class TeamLeadViewComponent implements OnInit {
     return 'No skills specified';
   }
 
+  getAssignedEmployeeName(task: any): string {
+    // If task has assigned employee information
+    if (task?.assignedTo) {
+      // Check if assignedTo is an object with employee details
+      if (typeof task.assignedTo === 'object') {
+        return task.assignedTo.name || task.assignedTo.employeeName || task.assignedTo.username || 'Unknown Employee';
+      }
+      // If assignedTo is just an ID or simple value
+      if (typeof task.assignedTo === 'string' || typeof task.assignedTo === 'number') {
+        return `Employee ${task.assignedTo}`;
+      }
+    }
+    
+    // Check if there's a separate assignedEmployeeName field
+    if (task?.assignedEmployeeName) {
+      return task.assignedEmployeeName;
+    }
+    
+    // Check if there's employee information in other fields
+    if (task?.employee?.name) {
+      return task.employee.name;
+    }
+    
+    return 'Unknown Employee';
+  }
   getTaskStatus(task: any): string {
-    const status = task?.assignedTo ? 'assigned' : 'pending';
-    return status.toLowerCase();
+    // Handle different status formats from backend
+    if (task?.status) {
+      const status = task.status.toString().toLowerCase();
+      // Map backend status to frontend classes
+      switch (status) {
+        case 'to_do':
+        case 'todo':
+          return task?.assignedTo ? 'assigned' : 'pending';
+        case 'in progress':
+        case 'in_progress':
+        case 'inprogress':
+          return 'in-progress';
+        case 'done':
+        case 'completed':
+        case 'complete':
+          return 'done';
+        default:
+          return task?.assignedTo ? 'assigned' : 'pending';
+      }
+    }
+    
+    // Fallback to assignment status
+    return task?.assignedTo ? 'assigned' : 'pending';
   }
 
   getTaskStatusDisplay(task: any): string {
+    // Handle different status formats from backend
+    if (task?.status) {
+      const status = task.status.toString().toLowerCase();
+      switch (status) {
+        case 'to_do':
+        case 'todo':
+          return task?.assignedTo ? 'Assigned' : 'Pending';
+        case 'in progress':
+        case 'in_progress':
+        case 'inprogress':
+          return 'In Progress';
+        case 'done':
+        case 'completed':
+        case 'complete':
+          return '✅ Done';
+        default:
+          return task?.assignedTo ? 'Assigned' : 'Pending';
+      }
+    }
+    
+    // Fallback display
     return task?.assignedTo ? 'Assigned' : 'Pending';
+  }
+
+  // New method to get detailed task status
+  getDetailedTaskStatus(task: any): { status: string, display: string, icon: string, color: string } {
+    const status = this.getTaskStatus(task);
+    
+    switch (status) {
+      case 'pending':
+        return { status, display: 'Pending Assignment', icon: '⏳', color: '#6c757d' };
+      case 'assigned':
+        return { status, display: 'Assigned', icon: '👤', color: '#007bff' };
+      case 'in-progress':
+        return { status, display: 'In Progress', icon: '🔄', color: '#ffc107' };
+      case 'done':
+        return { status, display: 'Completed', icon: '✅', color: '#28a745' };
+      default:
+        return { status, display: 'Unknown', icon: '❓', color: '#6c757d' };
+    }
   }
 
   isTaskPending(task: any): boolean {
@@ -811,6 +899,16 @@ export class TeamLeadViewComponent implements OnInit {
     console.log('- testComponent.suggestBackendFixes()');
   }
 
+  // Real-time update properties
+  private autoRefreshInterval: any;
+  private readonly AUTO_REFRESH_INTERVAL = 10000; // 10 seconds
+  autoRefreshEnabled: boolean = true;
+  lastUpdateTime: Date = new Date();
+  
+  // Status change tracking
+  private previousTaskStates: Map<number, any> = new Map();
+  statusChangeNotifications: any[] = [];
+
   private handleError(error: any, defaultMessage: string) {
     if (error.status === 401 || error.status === 403) {
       this.errorMessage = 'Your session has expired. Please log in again.';
@@ -921,5 +1019,231 @@ Frontend is working correctly - this is a backend issue.
     console.log(suggestions);
   }
 
-  // ...existing code...
+  // Auto-refresh methods
+  startAutoRefresh() {
+    if (this.autoRefreshInterval) {
+      clearInterval(this.autoRefreshInterval);
+    }
+    
+    if (this.autoRefreshEnabled) {
+      this.autoRefreshInterval = setInterval(() => {
+        console.log('🔄 Auto-refreshing tasks...');
+        this.refreshTasksWithStatusCheck();
+      }, this.AUTO_REFRESH_INTERVAL);
+      
+      console.log(`✅ Auto-refresh started (every ${this.AUTO_REFRESH_INTERVAL / 1000} seconds)`);
+    }
+  }
+
+  stopAutoRefresh() {
+    if (this.autoRefreshInterval) {
+      clearInterval(this.autoRefreshInterval);
+      this.autoRefreshInterval = null;
+      console.log('⏹️ Auto-refresh stopped');
+    }
+  }
+
+  toggleAutoRefresh() {
+    this.autoRefreshEnabled = !this.autoRefreshEnabled;
+    if (this.autoRefreshEnabled) {
+      this.startAutoRefresh();
+    } else {
+      this.stopAutoRefresh();
+    }
+  }
+  // Enhanced refresh with status change detection
+  refreshTasksWithStatusCheck() {
+    // Store previous states
+    this.storePreviousTaskStates();
+    
+    // Refresh tasks using existing logic
+    this.teamLeadService.getTasks().subscribe({
+      next: (response) => {
+        // Use existing task processing logic
+        console.log('Auto-refresh - RAW Tasks API response:', response);
+        console.log('Auto-refresh - Response type:', typeof response);
+        console.log('Auto-refresh - Is Array:', Array.isArray(response));
+
+        let tasksArray: any[] = [];
+
+        if (Array.isArray(response)) {
+          console.log('Auto-refresh - Using response as array directly');
+          tasksArray = response;
+        } else if (response && typeof response === 'object') {
+          console.log('Auto-refresh - Response is object, checking for tasks property');
+          if (response.tasks && Array.isArray(response.tasks)) {
+            tasksArray = response.tasks;
+          } else if (response.data && Array.isArray(response.data)) {
+            tasksArray = response.data;
+          } else {
+            console.warn('Auto-refresh - Could not find tasks array in response');
+            tasksArray = [];
+          }
+        }
+
+        this.tasks = tasksArray;
+        this.detectStatusChanges();
+        this.lastUpdateTime = new Date();
+      },
+      error: (error) => {
+        console.error('Failed to refresh tasks:', error);
+      }
+    });
+  }
+
+  // Store current task states before refresh
+  private storePreviousTaskStates() {
+    this.previousTaskStates.clear();
+    this.tasks.forEach(task => {
+      const taskId = task.taskId || task.id;
+      if (taskId) {
+        this.previousTaskStates.set(taskId, {
+          status: task.status,
+          assignedTo: task.assignedTo,
+          name: task.name
+        });
+      }
+    });
+  }
+
+  // Detect and notify about status changes
+  private detectStatusChanges() {
+    const newNotifications: any[] = [];
+    
+    this.tasks.forEach(currentTask => {
+      const taskId = currentTask.taskId || currentTask.id;
+      const previousState = this.previousTaskStates.get(taskId);
+      
+      if (previousState) {
+        // Check for status changes
+        if (previousState.status !== currentTask.status) {
+          newNotifications.push({
+            type: 'status-change',
+            taskId,
+            taskName: currentTask.name,
+            previousStatus: previousState.status,
+            newStatus: currentTask.status,
+            timestamp: new Date()
+          });
+        }
+        
+        // Check for assignment changes
+        if (previousState.assignedTo !== currentTask.assignedTo) {
+          newNotifications.push({
+            type: 'assignment-change',
+            taskId,
+            taskName: currentTask.name,
+            previousAssignment: previousState.assignedTo,
+            newAssignment: currentTask.assignedTo,
+            timestamp: new Date()
+          });
+        }
+      }
+    });
+    
+    // Add new notifications
+    if (newNotifications.length > 0) {
+      this.statusChangeNotifications.unshift(...newNotifications);
+      
+      // Keep only last 10 notifications
+      this.statusChangeNotifications = this.statusChangeNotifications.slice(0, 10);
+      
+      // Log changes
+      newNotifications.forEach(notification => {
+        if (notification.type === 'status-change') {
+          console.log(`📊 Task "${notification.taskName}" status changed: ${notification.previousStatus} → ${notification.newStatus}`);
+        } else if (notification.type === 'assignment-change') {
+          console.log(`👤 Task "${notification.taskName}" assignment changed: ${notification.previousAssignment || 'None'} → ${notification.newAssignment || 'None'}`);
+        }
+      });
+    }
+  }
+
+  // Get recent status changes for display
+  getRecentStatusChanges(): any[] {
+    return this.statusChangeNotifications.slice(0, 5);
+  }
+
+  // Clear status change notifications
+  clearStatusNotifications() {
+    this.statusChangeNotifications = [];
+  }
+
+  // Get tasks by status
+  getTasksByStatus(status: string): any[] {
+    return this.tasks.filter(task => this.getTaskStatus(task) === status);
+  }
+
+  // Get task statistics
+  getTaskStatistics() {
+    const total = this.tasks.length;
+    const pending = this.getTasksByStatus('pending').length;
+    const assigned = this.getTasksByStatus('assigned').length;
+    const inProgress = this.getTasksByStatus('in-progress').length;
+    const done = this.getTasksByStatus('done').length;
+    
+    return { total, pending, assigned, inProgress, done };
+  }
+
+  // Test method to simulate task status changes for demonstration
+  simulateTaskStatusChange(taskId: number, newStatus: string) {
+    console.log(`🧪 SIMULATION: Changing task ${taskId} to status: ${newStatus}`);
+    
+    const task = this.tasks.find(t => (t.taskId || t.id) === taskId);
+    if (task) {
+      // Store previous state for change detection
+      this.storePreviousTaskStates();
+      
+      // Update task status
+      const oldStatus = task.status;
+      task.status = newStatus;
+      
+      // Trigger change detection
+      this.detectStatusChanges();
+      
+      console.log(`✅ Simulated status change: ${task.name} from ${oldStatus} to ${newStatus}`);
+      this.successMessage = `Task "${task.name}" status updated to ${newStatus}`;
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        this.successMessage = '';
+      }, 3000);
+    } else {
+      console.error(`❌ Task with ID ${taskId} not found`);
+    }
+  }
+
+  // Test method to simulate task assignment for demonstration
+  simulateTaskAssignment(taskId: number, employeeName: string) {
+    console.log(`🧪 SIMULATION: Assigning task ${taskId} to: ${employeeName}`);
+    
+    const task = this.tasks.find(t => (t.taskId || t.id) === taskId);
+    if (task) {
+      // Store previous state for change detection
+      this.storePreviousTaskStates();
+      
+      // Update task assignment
+      const oldAssignment = task.assignedTo;
+      task.assignedTo = employeeName;
+      task.assignedDate = new Date().toISOString();
+      
+      // Trigger change detection
+      this.detectStatusChanges();
+      
+      console.log(`✅ Simulated assignment: ${task.name} assigned to ${employeeName}`);
+      this.successMessage = `Task "${task.name}" assigned to ${employeeName}`;
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        this.successMessage = '';
+      }, 3000);
+    } else {
+      console.error(`❌ Task with ID ${taskId} not found`);
+    }
+  }
+
+  ngOnDestroy() {
+    // Cleanup auto-refresh interval
+    this.stopAutoRefresh();
+  }
 }
