@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BenchedEmployeeService } from '../services/benched-employee.service';
+import { UserService } from '../services/user.service';
 
 interface Task {
   id: number;
@@ -30,13 +31,22 @@ export class BenchedEmployeeViewComponent implements OnInit {
   isLoading = false;
   isLoadingTasks = false;
   profileData: any = null;
-
   constructor(
     private benchedEmployeeService: BenchedEmployeeService,
-    private router: Router
+    private router: Router,
+    private userService: UserService
   ) {}
-
   ngOnInit() {
+    // Validate user has benched employee role
+    if (!this.userService.validateTokenForRole('BENCHED_EMPLOYEE')) {
+      this.errorMessage = 'Access denied. Benched Employee credentials required.';
+      setTimeout(() => {
+        this.userService.logout();
+        this.router.navigate(['/sign-in']);
+      }, 2000);
+      return;
+    }
+    
     if (!this.isLoggedIn()) {
       this.errorMessage = 'Your session has expired. Please log in again.';
       setTimeout(() => {

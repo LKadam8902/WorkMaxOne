@@ -1,7 +1,9 @@
 import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TeamLeadService } from '../services/team-lead.service';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-team-lead-view',
@@ -42,12 +44,29 @@ export class TeamLeadViewComponent implements OnInit {
   isUpdatingProfile = false;
   profileUpdateError = '';
   profileUpdateSuccess = '';
-
-  constructor(private teamLeadService: TeamLeadService, private elementRef: ElementRef) {
+  constructor(
+    private teamLeadService: TeamLeadService, 
+    private elementRef: ElementRef,
+    private userService: UserService,
+    private router: Router
+  ) {
     console.log('TeamLeadViewComponent initialized');
   }  ngOnInit() {
+    // Validate user has team lead role
+    if (!this.userService.validateTokenForRole('TEAM_LEAD')) {
+      this.errorMessage = 'Access denied. Team Lead credentials required.';
+      setTimeout(() => {
+        this.userService.logout();
+        this.router.navigate(['/sign-in']);
+      }, 2000);
+      return;
+    }
+    
     if (!this.teamLeadService.isLoggedIn()) {
       this.errorMessage = 'Your session has expired. Please log in again.';
+      setTimeout(() => {
+        this.router.navigate(['/sign-in']);
+      }, 2000);
       return;
     }
     
