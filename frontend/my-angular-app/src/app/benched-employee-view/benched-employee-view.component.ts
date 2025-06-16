@@ -15,6 +15,12 @@ interface Task {
   project?: any;
 }
 
+// Interface for the expected success response from addSkills
+// This matches the EmployeeBodyResponse DTO in your Spring Boot controller
+interface EmployeeBodyResponse {
+  message: string;
+}
+
 @Component({
   selector: 'app-benched-employee-view',
   standalone: true,
@@ -28,14 +34,16 @@ export class BenchedEmployeeViewComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   showDropdown = false;
-  isLoading = false;
+  isLoading = false; // Not used currently, but good to have
   isLoadingTasks = false;
   profileData: any = null;
+
   constructor(
     private benchedEmployeeService: BenchedEmployeeService,
     private router: Router,
     private userService: UserService
   ) {}
+
   ngOnInit() {
     // Validate user has benched employee role
     if (!this.userService.validateTokenForRole('BENCHED_EMPLOYEE')) {
@@ -68,7 +76,7 @@ export class BenchedEmployeeViewComponent implements OnInit {
   loadTasks() {
     console.log('Loading assigned tasks for benched employee...');
     this.isLoadingTasks = true;
-    this.errorMessage = '';
+    this.errorMessage = ''; // Clear previous error
     
     this.benchedEmployeeService.getTasks().subscribe({
       next: (response) => {
@@ -78,18 +86,18 @@ export class BenchedEmployeeViewComponent implements OnInit {
         let tasksArray: Task[] = [];
         if (Array.isArray(response)) {
           tasksArray = response;
-        } else if (response && response.tasks) {
-          tasksArray = response.tasks;
-        } else if (response && response.data) {
-          tasksArray = response.data;
+        } else if (response && (response as any).tasks) { // Using 'any' for flexible property access
+          tasksArray = (response as any).tasks;
+        } else if (response && (response as any).data) { // Using 'any' for flexible property access
+          tasksArray = (response as any).data;
         }
         
-        console.log('Raw tasks array:', tasksArray);
+        console.log('Raw tasks array for filtering:', tasksArray);
         
         // For benched employee, we expect the backend to return only assigned tasks
         // But let's also filter to be safe
         this.tasks = tasksArray.filter(task => {
-          console.log('Checking task:', task.name, 'Status:', task.status, 'AssignedTo:', task.assignedTo);
+          // console.log('Checking task:', task.name, 'Status:', task.status, 'AssignedTo:', task.assignedTo); // Can be noisy
           return task.assignedTo || 
                  task.status === 'assigned' || 
                  task.status === 'in-progress' || 
@@ -110,6 +118,7 @@ export class BenchedEmployeeViewComponent implements OnInit {
 
   loadProfile() {
     console.log('Loading benched employee profile...');
+    // No error message for profile load as it's not critical for basic functionality
     this.benchedEmployeeService.getProfile().subscribe({
       next: (response) => {
         console.log('Profile response:', response);
@@ -117,38 +126,55 @@ export class BenchedEmployeeViewComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading profile:', error);
-        // Profile loading is not critical, so don't show error to user
+        // Do not set errorMessage for profile load, it's less critical.
       }
     });
   }
 
   addSkills() {
-    if (!this.newSkills) return;
+    this.clearMessages(); // Clear any existing messages before starting
+    console.log('Attempting to add skills:', this.newSkills);
+
+    if (!this.newSkills) {
+      this.errorMessage = 'Please enter skills to add.';
+      console.warn('Skill input is empty.');
+      return;
+    }
     
-    const skillSet = this.newSkills.split(',').map(skill => skill.trim());
+    const skillSet = this.newSkills.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
     
+    if (skillSet.length === 0) {
+      this.errorMessage = 'Please enter valid skills (e.g., "Java, Spring, Angular").';
+      console.warn('Parsed skill set is empty.');
+      return;
+    }
+
+    console.log('Sending skillSet to service:', skillSet);
     this.benchedEmployeeService.addSkills(skillSet).subscribe({
-      next: () => {
-        this.newSkills = '';
-        this.successMessage = 'Skills added successfully';
-        this.errorMessage = '';
-        this.loadTasks();
+      next: (response: EmployeeBodyResponse) => { // Expect EmployeeBodyResponse
+        console.log('Skills added successfully response:', response);
+        this.newSkills = ''; // Clear input field
+        this.successMessage = response.message || 'Skills added successfully!'; // Use message from backend
+        this.loadProfile(); // Reload profile to reflect new skills if applicable
+        
+        // Clear success message after 3 seconds
         setTimeout(() => {
           this.successMessage = '';
+          console.log('Success message cleared.');
         }, 3000);
       },
       error: (error) => {
         console.error('Error adding skills:', error);
-        alert('Failed to add skills: ' + (error.error?.message || error.message || 'Unknown error'));
-        this.successMessage = '';
+        // Try to get a meaningful message from the error object
+        this.errorMessage = 'Failed to add skills: ' + (error.error?.message || error.message || JSON.stringify(error) || 'Unknown error');
+        this.successMessage = ''; // Ensure success message is cleared on error
       }
     });
   }
 
   updateTaskStatus(taskId: number, status: string) {
     console.log('Updating task status:', taskId, 'to', status);
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.clearMessages(); // Clear any existing messages before starting
     
     this.benchedEmployeeService.updateTaskStatus(taskId, status).subscribe({
       next: (response) => {
@@ -159,11 +185,14 @@ export class BenchedEmployeeViewComponent implements OnInit {
         // Clear success message after 3 seconds
         setTimeout(() => {
           this.successMessage = '';
+          console.log('Task status success message cleared.');
         }, 3000);
       },
       error: (error) => {
         console.error('Failed to update task status:', error);
-        alert('Failed to update task status: ' + (error.error?.message || error.message || 'Unknown error'));
+        this.errorMessage = 'Failed to update task status: ' + (error.error?.message || error.message || JSON.stringify(error) || 'Unknown error');
+        // Ensure success message is cleared on error
+        this.successMessage = ''; 
       }
     });
   }
@@ -191,16 +220,19 @@ export class BenchedEmployeeViewComponent implements OnInit {
   }
 
   logout() {
+    console.log('Logging out...');
     this.benchedEmployeeService.clearToken();
     this.router.navigate(['/sign-in']);
   }
 
   clearMessages() {
+    console.log('Clearing messages...');
     this.errorMessage = '';
     this.successMessage = '';
   }
 
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
+    console.log('Dropdown toggled. showDropdown:', this.showDropdown);
   }
 }
