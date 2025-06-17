@@ -21,12 +21,11 @@ export class AdminLoginComponent {
     private adminService: AdminService,
     private router: Router
   ) {}
-
   onSubmit() {
     this.adminService.login(this.email, this.password).subscribe({
       next: (response) => {
         // Store the token in localStorage
-        localStorage.setItem('adminToken', response.accessToken);
+        localStorage.setItem('adminToken', response.jwt);
         // Navigate to admin view
         this.router.navigate(['/admin-view']);
       },

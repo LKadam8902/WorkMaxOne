@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PricingComponent } from './pricing.component';
+import { TeamLeadView } from './team-lead-view';
 
-describe('Pricing', () => {
-  let component: PricingComponent;
-  let fixture: ComponentFixture<PricingComponent>;
+describe('TeamLeadView', () => {
+  let component: TeamLeadView;
+  let fixture: ComponentFixture<TeamLeadView>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PricingComponent]
+      imports: [TeamLeadView]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PricingComponent);
+    fixture = TestBed.createComponent(TeamLeadView);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

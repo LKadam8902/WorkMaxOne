@@ -1,0 +1,312 @@
+<div class="team-lead-dashboard">
+  <!-- Enhanced Sidebar -->
+  <div class="sidebar" [class.collapsed]="!showSidebar">    <div class="sidebar-header" [class.clickable]="!showSidebar">
+      <div 
+        class="dashboard-icon" 
+        [title]="showSidebar ? 'Dashboard' : 'Click to expand sidebar'"
+        (click)="!showSidebar && openSidebar()">📊</div>
+      <button 
+        *ngIf="showSidebar"
+        class="toggle-sidebar-btn" 
+        (click)="closeSidebar()" 
+        title="Close Sidebar">
+        ◀
+      </button>
+    </div>
+      <!-- Tasks Section in Sidebar -->
+    <div class="sidebar-content" *ngIf="showSidebar">
+      <div class="sidebar-section">
+        <!-- All Tasks Button -->
+        <div class="sidebar-header-section">          <button class="all-tasks-btn" (click)="loadAllTasks()" [disabled]="isLoadingTasks">
+            <span class="btn-icon">📋</span>
+            <span class="btn-text">All Tasks</span>
+            <span class="task-count">({{ tasks.length }})</span>
+          </button><button class="refresh-tasks-btn" (click)="refreshTasksList()" [disabled]="isLoadingTasks" title="Refresh Tasks">
+            <span class="refresh-icon" [class.spinning]="isLoadingTasks">🔄</span>
+          </button>
+        </div>
+        
+        <!-- Loading indicator -->
+        <div *ngIf="isLoadingTasks" class="sidebar-loading">
+          <div class="loading-spinner"></div>
+          <span>Loading tasks...</span>
+        </div>
+          <!-- Tasks list -->
+        <div *ngIf="!isLoadingTasks && tasks.length > 0" class="tasks-list">
+          <div *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-item">
+            <div class="task-info">
+              <h4 class="task-name">{{ task.name }}</h4>
+              <p class="task-skills">{{ getTaskSkills(task) }}</p>
+              <span class="task-status" [class]="'status-' + getTaskStatus(task)">
+                {{ getTaskStatusDisplay(task) }}
+              </span>
+            </div>
+            <button 
+              *ngIf="isTaskPending(task)" 
+              (click)="assignTask(getTaskId(task))" 
+              class="assign-task-btn"
+              title="Assign this task">
+              Assign
+            </button>
+          </div>
+        </div>        <!-- No tasks message -->
+        <div *ngIf="!isLoadingTasks && tasks.length === 0" class="no-tasks">
+          <div class="no-tasks-icon">📋</div>
+          <p class="no-tasks-title">No tasks available</p>
+          <small class="no-tasks-subtitle">Create your first task using the form above.</small>
+          <button class="retry-btn" (click)="retryLoadTasks()" style="margin-top: 10px; padding: 8px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+            🔄 Retry Loading
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Main content -->
+  <div class="main-content">
+
+    <!-- Top bar -->
+    <div class="top-bar">
+      <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
+      <div class="top-bar-actions">        <div class="profile-dropdown">
+          <div class="profile-trigger" (click)="toggleProfileDropdown()">
+            <img src="./icon.jpg" alt="Profile" class="profile-icon" />
+            <span class="profile-name" *ngIf="profileData">{{ profileData.employeeName || 'Team Lead' }}</span>
+            <span class="dropdown-arrow" [class.open]="showProfileDropdown">▼</span>
+          </div>          <!-- Simple, guaranteed visible dropdown -->
+          <div *ngIf="showProfileDropdown" 
+               style="position: absolute; top: 100%; right: 0; background: white; border: 2px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 250px;"
+               (click)="$event.stopPropagation()">
+            
+            <!-- Profile Header -->
+            <div style="padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px 6px 0 0;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="./icon.jpg" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);" />
+                <div>
+                  <h3 style="margin: 0; font-size: 16px;">{{ profileData?.employeeName || 'Team Lead' }}</h3>
+                  <p style="margin: 4px 0 0 0; font-size: 14px; opacity: 0.9;">{{ profileData?.email || 'No email' }}</p>
+                </div>
+              </div>
+            </div>
+              <!-- Divider -->
+            <div style="height: 1px; background: #e5e7eb;"></div>
+            
+            <!-- Buttons -->
+            <div style="padding: 8px;">
+              <button (click)="openEditProfile()" 
+                      style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border: none; background: none; color: #2563eb; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 6px; margin-bottom: 4px;"
+                      onmouseover="this.style.backgroundColor='#eff6ff'" 
+                      onmouseout="this.style.backgroundColor='transparent'">
+                <span>✏️</span>
+                Edit Profile
+              </button>
+              
+              <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
+              
+              <button (click)="logout()" 
+                      style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border: none; background: none; color: #dc2626; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 6px;"
+                      onmouseover="this.style.backgroundColor='#fee2e2'" 
+                      onmouseout="this.style.backgroundColor='transparent'">
+                <span>🚪</span>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+      <button *ngIf="errorMessage.includes('session') || errorMessage.includes('log in')" 
+              (click)="redirectToLogin()" 
+              class="login-btn">
+        Go to Login
+      </button>
+    </div>    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+    <div *ngIf="isLoading" class="loading-message">Loading...</div>
+
+    <!-- Progress indicator -->
+    <div class="progress-steps">
+      <div class="step" [class.active]="currentStep === 'project'" [class.completed]="hasExistingProject">
+        <span class="step-number">1</span>
+        <span class="step-label">Create Project</span>
+      </div>
+      <div class="step" [class.active]="currentStep === 'task'" [class.completed]="currentStep === 'complete'">
+        <span class="step-number">2</span>
+        <span class="step-label">Add Task</span>
+      </div>
+      <div class="step" [class.active]="currentStep === 'complete'">
+        <span class="step-number">3</span>
+        <span class="step-label">Complete</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Create Project -->
+    <div *ngIf="currentStep === 'project'" class="step-content">
+      <h2>Create Your Project</h2>
+      <p>Start by creating a new project. You can only create one project as a team lead.</p>
+      
+      <div class="form-group">
+        <label for="projectName">Project Name:</label>
+        <input 
+          id="projectName"
+          type="text" 
+          [(ngModel)]="projectName" 
+          placeholder="Enter project name"
+          [disabled]="isLoading"
+          class="form-input" />
+      </div>
+        <button 
+        (click)="onProjectSubmit()" 
+        [disabled]="isLoading || !projectName.trim()"
+        class="primary-btn">
+        {{ isLoading ? 'Creating...' : 'Create Project' }}
+      </button>
+      
+      <!-- Add task mode button if tasks exist -->
+      <button 
+        *ngIf="tasks.length > 0"
+        (click)="switchToTaskMode()" 
+        class="secondary-btn"
+        style="margin-left: 10px; background-color: #28a745; color: white;">
+        Switch to Add Tasks
+      </button>
+    </div>
+
+    <!-- Step 2: Add Task -->
+    <div *ngIf="currentStep === 'task'" class="step-content">
+      <h2>Add a Task</h2>
+      <p *ngIf="!hasExistingProject">Great! Your project has been created. Now add your first task.</p>
+      <p *ngIf="hasExistingProject">Add a new task to your existing project.</p>
+      
+      <div class="form-group">
+        <label for="taskName">Task Name:</label>
+        <input 
+          id="taskName"
+          type="text" 
+          [(ngModel)]="taskName" 
+          placeholder="Enter task name"
+          [disabled]="isLoading"
+          class="form-input" />
+      </div>
+      
+      <div class="form-group">
+        <label for="skills">Required Skills:</label>
+        <input 
+          id="skills"
+          type="text" 
+          [(ngModel)]="skills" 
+          placeholder="Enter skills separated by commas (e.g., Java, Spring, Angular)"
+          [disabled]="isLoading"
+          class="form-input" />
+        <small class="form-help">Enter the skills required for this task, separated by commas</small>
+      </div>
+      
+      <button 
+        (click)="onTaskSubmit()" 
+        [disabled]="isLoading || !taskName.trim() || !skills.trim()"
+        class="primary-btn">
+        {{ isLoading ? 'Creating...' : 'Create Task' }}
+      </button>
+    </div>
+
+    <!-- Step 3: Complete -->
+    <div *ngIf="currentStep === 'complete'" class="step-content">
+      <h2>✅ Task Created Successfully!</h2>
+      <p>Your task has been created and is now available for assignment to team members.</p>
+      
+      <div class="completion-actions">
+        <button (click)="createAnotherTask()" class="primary-btn">
+          Add Another Task
+        </button>
+        <button (click)="redirectToLogin()" class="secondary-btn">          Back to Dashboard
+        </button>
+      </div>
+    </div>
+      <!-- Backend Issue Alert
+    <div style="background: #f8d7da; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #dc3545; color: #721c24;">
+      <strong>� Backend Issue Detected:</strong> 
+      <div style="margin-top: 8px;">
+        The backend <code>/teamLead/allTasks</code> endpoint is only returning <strong>1 task</strong> instead of all <strong>4 tasks</strong> from the database.
+      </div>
+      <div style="margin-top: 8px; font-size: 14px;">
+        <strong>Expected tasks:</strong> project ui (ID:1), project frontend (ID:2), project backend (ID:3), project readme (ID:4)<br>
+        <strong>Currently returned:</strong> Only project frontend (ID:2)
+      </div>
+      <div style="margin-top: 10px;">
+        <button (click)="analyzeBackendResponse()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 3px; margin-right: 10px;">
+          🔍 Re-analyze Backend
+        </button>
+        <button (click)="loadAllTasks()" style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 3px;">
+          🔄 Retry Load
+        </button>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
+        <strong>Backend Fix Needed:</strong> Check the Spring Boot controller/service for the <code>allTasks</code> endpoint and ensure it returns ALL tasks for the team lead, not just one.
+      </div>
+    </div> -->
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal-overlay" *ngIf="showEditProfileModal" (click)="closeEditProfile()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Edit Profile</h2>
+        <button class="close-btn" (click)="closeEditProfile()">×</button>
+      </div>
+      
+      <form (ngSubmit)="updateProfile()" class="edit-profile-form">
+        <div class="form-group">
+          <label for="editName">Full Name</label>
+          <input 
+            type="text" 
+            id="editName" 
+            [(ngModel)]="editProfileData.employeeName" 
+            name="editName" 
+            class="form-input"
+            placeholder="Enter your full name"
+            required>
+        </div>
+        
+        <div class="form-group">
+          <label for="editEmail">Email</label>
+          <input 
+            type="email" 
+            id="editEmail" 
+            [(ngModel)]="editProfileData.email" 
+            name="editEmail" 
+            class="form-input"
+            placeholder="Enter your email"
+            required>
+        </div>
+        
+        <div class="form-group">
+          <label for="editPassword">New Password (optional)</label>
+          <input 
+            type="password" 
+            id="editPassword" 
+            [(ngModel)]="editProfileData.password" 
+            name="editPassword" 
+            class="form-input"
+            placeholder="Leave blank to keep current password">
+        </div>
+        
+        <div *ngIf="profileUpdateError" class="error-message">
+          {{ profileUpdateError }}
+        </div>
+        
+        <div *ngIf="profileUpdateSuccess" class="success-message">
+          {{ profileUpdateSuccess }}
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="cancel-btn" (click)="closeEditProfile()">Cancel</button>
+          <button type="submit" class="save-btn" [disabled]="isUpdatingProfile">
+            {{ isUpdatingProfile ? 'Updating...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -37,7 +37,7 @@ public class JwtSecurityConfig {
     public SecurityFilterChain filterChainIgnoreAuth(HttpSecurity http) throws Exception {
         System.out.println("Hello from ignore AUth");
 
-        http.securityMatcher("/auth/**", "/error", "/employee/**", "/admin/login","/admin/view/**").authorizeHttpRequests((authorize) -> authorize
+        http.securityMatcher("/auth/**", "/error", "/employee/**", "/admin/login").authorizeHttpRequests((authorize) -> authorize
                 .anyRequest().permitAll()
         )
                 .cors(Customizer.withDefaults())
@@ -53,7 +53,7 @@ public class JwtSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         System.out.println("hello from filterchain");
         http.authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/admin/getAdminDetails").hasRole("ADMIN")
+                .requestMatchers("/admin/getAdminDetails","/admin/view/**").hasRole("ADMIN")
                 .requestMatchers("/benchEmployee").hasRole("BENCHED_EMPLOYEE")
                 .requestMatchers("/teamLead").hasRole("TEAM_LEAD")
                 .requestMatchers("/**").authenticated())

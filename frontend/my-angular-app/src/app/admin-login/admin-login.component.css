@@ -1,47 +1,101 @@
-.admin-login-container {
-    width: 400px;
-    margin: 100px auto;
-    padding: 40px;
-    border: 1px solid #ccc;
-    text-align: center;
-    border-radius: 8px;
-  }
-  
-  .logo {
-    width: 80px;
-    margin-bottom: 20px;
-  }
-  
-  .heading {
-    font-size: 20px;
-    margin-bottom: 25px;
-  }
-  
-  .input-field {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    background-color: #d9d9d9;
-    border: none;
-    font-size: 18px;
-    border-radius: 4px;
-  }
-  
-  .submit-button {
-    /* width: 100%; */
-    padding: 12px;
-    background-color: #dde8ff;
-    border: 1px solid #99aabb;
-    font-size: 18px;
-    cursor: pointer;
-    border-radius: 6px;
-  }
+body {
+  background: #1b2a30; /* Dark background matching the image */
+  font-family: 'Roboto', sans-serif;
+}
 
-  
-  .error-message {
-    color: #ff0000;
-    margin: 10px 0;
-    font-size: 14px;
-  }
+.container {
+  padding-top: 50px;
+}
 
-  
+.login-box {
+  background: #12181b;
+  text-align: center;
+  padding: 50px 40px;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  max-width: 500px;
+  margin: auto;
+}
+
+.login-key {
+  font-size: 80px;
+  background: -webkit-linear-gradient(#27ef9f, #0db8de);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+.login-title {
+  font-size: 26px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 30px;
+  letter-spacing: 2px;
+}
+
+.login-form {
+  text-align: left;
+}
+
+input[type='email'],
+input[type='password'] {
+  background-color: transparent;
+  border: none;
+  border-bottom: 2px solid #0db8de;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 10px 0;
+  width: 100%;
+  margin-bottom: 20px;
+  outline: none;
+}
+
+input::placeholder {
+  color: #aaa;
+}
+
+.form-control:focus {
+  background-color: transparent;
+  color: #ffffff;
+  border-bottom: 2px solid #0db8de;
+  box-shadow: none;
+}
+
+label {
+  font-size: 10px;
+  color: #6c6c6c;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.btn-outline-primary {
+  border-color: #0db8de;
+  color: #0db8de;
+  border-radius: 0;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 8px 20px;
+}
+
+.btn-outline-primary:hover {
+  background-color: #0db8de;
+  color: #fff;
+}
+
+.loginbttm {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.login-text {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.error-message {
+  color: #ff5c5c;
+  font-size: 13px;
+}

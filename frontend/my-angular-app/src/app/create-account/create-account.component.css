@@ -1,58 +1,127 @@
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-family: sans-serif;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.card {
-  border: 1px solid #ccc;
+html, body {
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Layout container */
+.register-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Left: Form Panel */
+.left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 2rem;
-  border-radius: 8px;
-  width: 350px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
+  background-color: #fff;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .logo {
-  height: 120px;
+  height: 80px;
   margin-bottom: 10px;
 }
 
 form {
+  width: 100%;
+  max-width: 350px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  max-height: 70vh;
+  padding-right: 6px;
 }
 
+/* Input Fields */
 input, select {
   padding: 12px;
-  margin: 10px 0;
+  margin: 8px 0;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 15px;
 }
 
+/* Button */
 button {
+  margin-top: 12px;
   padding: 12px;
-  background-color: #dce7ff;
-  border: none;
-  border-radius: 8px;
   font-size: 16px;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
+  background: linear-gradient(to right, #f15a24, #c918aa);
+  color: white;
+  font-weight: 600;
+  transition: background 0.3s ease;
 }
 
 button:hover {
-  background-color: #bcd4ff;
+  opacity: 0.9;
 }
 
+/* Message styles */
 .error-message {
   color: #dc2626;
-  margin: 10px 0;
   font-size: 14px;
+  margin-top: 6px;
 }
 
 .success-message {
   color: #059669;
-  margin: 10px 0;
   font-size: 14px;
+  margin-top: 6px;
+}
+
+/* Right: Info Panel */
+.right-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #f15a24, #c918aa);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.right-panel h3 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.right-panel p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Mobile responsive fallback */
+@media (max-width: 768px) {
+  .register-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .left-panel, .right-panel {
+    flex: none;
+    height: 50vh;
+  }
+
+  form {
+    max-height: 100%;
+  }
 }

@@ -26,7 +26,8 @@ public class BenchedEmployeeService {
     private TaskRepository taskRepository;
 
     public Optional<BenchedEmployee> getDetails(int bempid){
-        return benchedEmployeeRepo.findById(bempid);
+        System.out.println(bempid);
+        return Optional.ofNullable(benchedEmployeeRepo.findById(bempid));
     }
 
     public void updateDurationAll(){
@@ -68,7 +69,7 @@ public class BenchedEmployeeService {
 
     public void updateProfile(int benchedEmpId, String name, String profileUrl) {
 
-        BenchedEmployee benchEmp = benchedEmployeeRepo.findById(benchedEmpId).get();
+        BenchedEmployee benchEmp = benchedEmployeeRepo.findById(benchedEmpId);
         benchEmp.setEmployeeName(name);
         benchEmp.setProfileUrl(profileUrl);
         benchedEmployeeRepo.save(benchEmp);

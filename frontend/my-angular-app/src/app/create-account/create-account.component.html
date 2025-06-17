@@ -1,8 +1,6 @@
-<div class="container">
-  <div class="card">
-    <img src=".\logo11.png" class="logo" />
-    <!-- <h2>WorkMAX</h2> -->
-
+<div class="register-container">
+  <div class="left-panel">
+    <img src="./logo11.png" class="logo" />
     <form (ngSubmit)="onSubmit()">
       <input type="text" [(ngModel)]="userData.username" name="username" placeholder="UserName" required />
       <input type="email" [(ngModel)]="userData.email" name="email" placeholder="Email Id" required />
@@ -21,5 +19,13 @@
 
       <button type="submit">Create Account</button>
     </form>
+  </div>
+
+  <div class="right-panel">
+    <h3>We are more than just a company</h3>
+    <p>
+      At WorkMax, we strive to blend productivity with innovation,
+      making your work smoother and smarter.
+    </p>
   </div>
 </div>

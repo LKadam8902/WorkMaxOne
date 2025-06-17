@@ -19,6 +19,6 @@ public interface BenchedEmployeeRepo extends JpaRepository<BenchedEmployee,Integ
 
    public List<BenchedEmployee> findByIsTaskAssignedFalse();
 
-   // public BenchedEmployee findById(int benchempId);
+   public BenchedEmployee findById(int benchempId);
 
 }
