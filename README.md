@@ -169,14 +169,14 @@ Comprehensive documentation for WorkMax is available in the project Wiki. This r
 -   **Frontend/Backend Design**: Explanations of the design principles, architectural patterns, and key decisions made in both the frontend and backend development.
 -   **Contribution Guidelines**: Essential information for developers who wish to contribute to the project, covering coding standards, commit messages, and the pull request process.
 
-👉 [Go to Wiki](https://gitlab.com/capstone-12/TravelMate/-/wikis/home)
+👉 [Go to Wiki]
 
 
 ## 🦾 Contributing
 
 We welcome and appreciate contributions to WorkMax! Whether it's reporting bugs, suggesting new features, improving documentation, or submitting code, your input helps make this project better.
 
-Before you start, please take a moment to read our [Contribution Guide](https://gitlab.com/capstone-12/TravelMate/-/wikis/contribution_guide). This guide outlines:
+Before you start, please take a moment to read our [Contribution Guide]. This guide outlines:
 
 -   How to set up your development environment.
 -   The process for reporting issues.
