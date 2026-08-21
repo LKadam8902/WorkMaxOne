@@ -28,7 +28,7 @@ Do not set `PORT`; Render sets it automatically. The app reads it through `serve
 
 ## 4. Deploy
 
-Click **Create Web Service**. Render builds the Docker image and starts the app. When deployment completes, open the Render URL. The Angular UI and Spring API use the same origin, so no frontend URL or CORS change is required.
+Click **Create Web Service**. Render builds the Docker image and starts the app. When deployment completes, open the Render URL. The service uses `/health` for Render's health check. The Angular UI and Spring API use the same origin, so no frontend URL or CORS change is required.
 
 ## Notes
 

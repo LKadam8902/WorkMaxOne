@@ -3,7 +3,7 @@ services:
     name: workmax
     runtime: docker
     plan: free
-    healthCheckPath: /
+    healthCheckPath: /health
     envVars:
       - key: SPRING_DATASOURCE_URL
         sync: false

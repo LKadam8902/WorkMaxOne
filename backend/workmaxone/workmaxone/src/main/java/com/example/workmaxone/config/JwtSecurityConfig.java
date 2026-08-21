@@ -53,6 +53,10 @@ public class JwtSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         System.out.println("hello from filterchain");
         http.authorizeHttpRequests((authorize) -> authorize
+                .requestMatchers("/health", "/", "/index.html", "/favicon.ico",
+                        "/*.js", "/*.css", "/*.png", "/*.jpg", "/*.jpeg", "/*.svg", "/*.ico",
+                        "/create-account", "/sign-in", "/admin-login", "/admin-view", "/team-lead-view",
+                        "/benched-employee-view", "/edit-profile", "/contact").permitAll()
                 .requestMatchers("/admin/getAdminDetails","/admin/view/**").hasRole("ADMIN")
                 .requestMatchers("/benchEmployee/**").hasRole("BENCHED_EMPLOYEE")
                 .requestMatchers("/teamLead/**").hasRole("TEAM_LEAD")
