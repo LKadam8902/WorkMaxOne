@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BenchedEmployeeService {
-  private apiUrl = 'http://localhost:8000/benchEmployee';
+  private apiUrl = `${environment.apiBaseUrl}/benchEmployee`;
 
   constructor(private http: HttpClient) { }
   private getAuthHeaders(): HttpHeaders {

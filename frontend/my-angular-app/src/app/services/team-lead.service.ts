@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError, of, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeamLeadService {
-  private apiUrl = 'http://localhost:8000/teamLead';
+  private apiUrl = `${environment.apiBaseUrl}/teamLead`;
 
   constructor(private http: HttpClient) { }  private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
@@ -661,7 +662,7 @@ export class TeamLeadService {
   // Get all benched employees (fallback method)
   getAllBenchedEmployees(): Observable<any> {
     console.log('TeamLeadService.getAllBenchedEmployees() called');
-    return this.http.get('http://localhost:8000/benchEmployee/details', { 
+    return this.http.get(`${environment.apiBaseUrl}/benchEmployee/details`, {
       headers: this.getAuthHeaders()
     }).pipe(
       map((response: any) => {
