@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.example.workmaxone.entity.BenchedEmployee;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +18,8 @@ public interface BenchedEmployeeRepo extends JpaRepository<BenchedEmployee,Integ
 
    // public  Optional<Employee> findByEmail(String useremail);
 
+   @Query("SELECT employee FROM BenchedEmployee employee " +
+          "WHERE COALESCE(employee.isTaskAssigned, false) = false")
    public List<BenchedEmployee> findByIsTaskAssignedFalse();
 
    public BenchedEmployee findById(int benchempId);

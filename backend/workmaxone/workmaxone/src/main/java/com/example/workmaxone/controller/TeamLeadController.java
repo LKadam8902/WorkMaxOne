@@ -51,10 +51,13 @@ public class TeamLeadController {
 //    }
 
     @GetMapping("/details")
-    public ResponseEntity<TeamLead> getTeamLeadDetails(@AuthenticationPrincipal Jwt jwt){
-        int teamLeadId=Integer.valueOf(jwt.getSubject());
-        TeamLead lead=teamLeadService.getDetails(teamLeadId);
-        return new ResponseEntity<>(lead,HttpStatus.OK);
+    public ResponseEntity<TeamLeadDetailsResponse> getTeamLeadDetails(@AuthenticationPrincipal Jwt jwt){
+        int teamLeadId = Integer.parseInt(jwt.getSubject());
+        TeamLead lead = teamLeadService.getDetails(teamLeadId);
+        Integer projectId = lead.getProject() == null ? null : lead.getProject().getProjectId();
+        String projectName = lead.getProject() == null ? null : lead.getProject().getProjectName();
+        return ResponseEntity.ok(new TeamLeadDetailsResponse(
+                lead.getEmployeeName(), lead.getEmail(), projectId, projectName));
     }
 
     @PutMapping("/editProfile")
@@ -74,8 +77,9 @@ public class TeamLeadController {
     @PutMapping("/assignTask/{id}")
     public ResponseEntity<TaskResponse> assignTask(@AuthenticationPrincipal Jwt jwt,@PathVariable("id") Integer taskId) {
         int teamLeadId = Integer.valueOf(jwt.getSubject());
-        var task = taskService.assignTask(taskId, teamLeadId);
-        return new ResponseEntity<>(new TaskResponse("Task assigned successfully"),HttpStatus.OK);
+        ResponseEntity<TaskAssignResponse> result = taskService.assignTask(taskId, teamLeadId);
+        return ResponseEntity.status(result.getStatusCode())
+                .body(new TaskResponse(result.getBody().message()));
     }
 
     @GetMapping("/allTaskAssignees")

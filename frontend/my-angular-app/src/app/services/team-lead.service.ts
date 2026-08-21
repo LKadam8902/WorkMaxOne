@@ -145,7 +145,7 @@ export class TeamLeadService {
           const parsed = JSON.parse(response);
           console.log('getTasks - Successfully parsed JSON:', parsed);
           console.log('getTasks - Parsed data type:', typeof parsed, 'Is Array:', Array.isArray(parsed));
-          return parsed;
+          return this.normalizeTasks(parsed);
         } catch (parseError) {
           console.warn('getTasks - JSON parse failed, attempting to fix malformed JSON:', parseError);
           console.log('getTasks - Raw response for analysis:', response.substring(0, 1000) + '...');
@@ -175,7 +175,7 @@ export class TeamLeadService {
           try {
             const fixedParsed = JSON.parse(fixedJson);
             console.log('getTasks - Successfully parsed fixed JSON:', fixedParsed);
-            return fixedParsed;
+            return this.normalizeTasks(fixedParsed);
           } catch (fixError) {
             console.error('getTasks - Even fixed JSON failed to parse:', fixError);
             console.log('getTasks - Fixed JSON attempt was:', fixedJson.substring(0, 1000) + '...');
@@ -274,6 +274,14 @@ export class TeamLeadService {
         throw error;
       })
     );
+  }
+
+  private normalizeTasks(response: any): any[] {
+    if (!Array.isArray(response)) {
+      return [];
+    }
+
+    return response.map(task => ({ ...task, id: task.id ?? task.taskId }));
   }
 
   updateProfile(profileData: any): Observable<any> {
@@ -632,6 +640,41 @@ export class TeamLeadService {
     );
   }
 
+  // Get all benched employees assigned to tasks by this team lead
+  allAssignees(): Observable<any> {
+    console.log('TeamLeadService.allAssignees() called');
+    return this.http.get(`${this.apiUrl}/allTaskAssignees`, { 
+      headers: this.getAuthHeaders()
+    }).pipe(
+      map((response: any) => {
+        console.log('allAssignees - Response:', response);
+        return response;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('allAssignees - Error:', error);
+        // If this endpoint fails, we'll rely on building the map from tasks
+        return of([]);
+      })
+    );
+  }
+
+  // Get all benched employees (fallback method)
+  getAllBenchedEmployees(): Observable<any> {
+    console.log('TeamLeadService.getAllBenchedEmployees() called');
+    return this.http.get('http://localhost:8000/benchEmployee/details', { 
+      headers: this.getAuthHeaders()
+    }).pipe(
+      map((response: any) => {
+        console.log('getAllBenchedEmployees - Response:', response);
+        return response;
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('getAllBenchedEmployees - Error:', error);
+        return of([]);
+      })
+    );
+  }
+
   // Alternative assignment method that might work better
   assignTaskAlternative(taskId: number, employeeId?: number): Observable<any> {
     console.log(`TeamLeadService.assignTaskAlternative() called with taskId: ${taskId}, employeeId: ${employeeId}`);
@@ -656,6 +699,34 @@ export class TeamLeadService {
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('assignTaskAlternative - Error:', error);
+        throw error;
+      })
+    );
+  }
+
+  // Update task status (TO_DO, IN_PROGRESS, DONE)
+  updateTaskStatus(taskId: number, status: string): Observable<any> {
+    console.log(`TeamLeadService.updateTaskStatus() called with taskId: ${taskId}, status: ${status}`);
+    
+    const body = { status };
+    
+    return this.http.put(`${this.apiUrl}/updateTaskStatus/${taskId}`, body, { 
+      headers: this.getAuthHeaders(),
+      responseType: 'text'
+    }).pipe(
+      map((response: any) => {
+        console.log('updateTaskStatus - Raw response:', response);
+        try {
+          const parsed = JSON.parse(response);
+          console.log('updateTaskStatus - Parsed response:', parsed);
+          return parsed;
+        } catch (e) {
+          console.log('updateTaskStatus - Response is not JSON:', response);
+          return { message: response || 'Task status updated successfully' };
+        }
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('updateTaskStatus - Error:', error);
         throw error;
       })
     );

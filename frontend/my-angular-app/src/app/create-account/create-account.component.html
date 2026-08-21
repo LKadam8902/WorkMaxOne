@@ -1,31 +1,95 @@
-<div class="register-container">
-  <div class="left-panel">
-    <img src="./logo11.png" class="logo" />
-    <form (ngSubmit)="onSubmit()">
-      <input type="text" [(ngModel)]="userData.username" name="username" placeholder="UserName" required />
-      <input type="email" [(ngModel)]="userData.email" name="email" placeholder="Email Id" required />
-      
-      <select [(ngModel)]="userData.role" name="role" required>
-        <option value="" disabled selected>Select Role</option>
-        <option value="team-lead">Team Lead</option>
-        <option value="benched-employee">Benched Employee</option>
-      </select>
-      
-      <input type="password" [(ngModel)]="userData.password" name="password" placeholder="Password" required />
-      <input type="password" [(ngModel)]="userData.confirmPassword" name="confirmPassword" placeholder="Confirm Password" required />
+<section class="register-wrapper">
 
-      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+  <div class="register-card">
 
-      <button type="submit">Create Account</button>
-    </form>
+    <!-- LEFT -->
+    <div class="register-left">
+
+      <div class="logo-container">
+        <img src="./logo11.png" alt="WorkMax Logo" />
+      </div>
+
+      <form (ngSubmit)="onSubmit()" class="register-form">
+
+        <h2>Create your account</h2>
+        <p class="subtitle">Start managing your workforce efficiently</p>
+
+        <div class="form-group">
+          <input type="text"
+            [(ngModel)]="userData.username"
+            name="username"
+            placeholder="Username"
+            required />
+        </div>
+
+        <div class="form-group">
+          <input type="email"
+            [(ngModel)]="userData.email"
+            name="email"
+            placeholder="Email"
+            required />
+        </div>
+
+        <div class="form-group">
+          <select [(ngModel)]="userData.role" name="role" required>
+            <option value="" disabled>Select Role</option>
+            <option value="team-lead">Team Lead</option>
+            <option value="benched-employee">Benched Employee</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <input type="password"
+            [(ngModel)]="userData.password"
+            name="password"
+            placeholder="Password"
+            required />
+        </div>
+
+        <div class="form-group">
+          <input type="password"
+            [(ngModel)]="userData.confirmPassword"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            required />
+        </div>
+
+        <!-- Messages -->
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div *ngIf="successMessage" class="success-message">
+          {{ successMessage }}
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="primary-btn">
+          Create Account
+        </button>
+
+        <!-- Navigate -->
+        <div class="login-link">
+          <span>Already have an account?</span>
+          <button type="button" (click)="navigateToLogin()">
+            Sign in
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="register-right">
+      <div class="right-content">
+        <h3>Build Smarter Teams</h3>
+        <p>
+          Join WorkMax and unlock efficient workforce management,
+          better task allocation, and improved productivity.
+        </p>
+      </div>
+    </div>
+
   </div>
 
-  <div class="right-panel">
-    <h3>We are more than just a company</h3>
-    <p>
-      At WorkMax, we strive to blend productivity with innovation,
-      making your work smoother and smarter.
-    </p>
-  </div>
-</div>
+</section>

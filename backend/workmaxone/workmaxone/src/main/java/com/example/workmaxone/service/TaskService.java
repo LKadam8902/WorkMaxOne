@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.PriorityQueue;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -51,30 +52,43 @@ public class TaskService {
             task.setName(name);
             task.setSkillSet(skillSet);
             task.setAssignedBy(assignedBy);
-            Optional<TeamLead> teamLead=teamLeadRepo.findById(assignedBy);
-            Project project=projectRepository.findByManager(teamLead);
+            Optional<TeamLead> teamLead = teamLeadRepo.findById(assignedBy);
+            if (teamLead.isEmpty()) {
+                throw new TaskException("Team lead not found.");
+            }
+            Project project = projectRepository.findByManager(teamLead);
             if (project!=null) {
                 task.setProject(project);
             } else {
-                throw new TaskException("Project with ID " + project.getProjectId() + " not found.");
+                throw new TaskException("Create a project before creating tasks.");
             }
             return taskRepository.save(task);
+        } catch (TaskException e) {
+            throw e;
         } catch (Exception e) {
             throw new TaskException("Unable to create new task due to : " + e.getMessage());
         }
     }
 
-    public void updateTask(int task_id, String status) {
+    public void updateTask(int taskId, int employeeId, String status) {
         try {
-            Task task = taskRepository.findById(task_id);
-            if(status== Status.DONE.name()){
+            Task task = taskRepository.findById(taskId);
+            if (task == null) {
+                throw new TaskException("Task not found.");
+            }
+            if (!Integer.valueOf(employeeId).equals(task.getAssignedTo())) {
+                throw new TaskException("You can only update tasks assigned to you.");
+            }
+            if (Status.DONE.name().equals(status)) {
                 detachTask(task);
                 return;
             }
             task.setStatus(status);
             taskRepository.save(task);
+        } catch (TaskException e) {
+            throw e;
         } catch (Exception e) {
-            throw new TaskException("Enable to update task due to this error :" + e.getMessage());
+            throw new TaskException("Unable to update task: " + e.getMessage());
         }
     }
 
@@ -109,8 +123,17 @@ public ResponseEntity<TaskAssignResponse> assignTask(int taskId, int teamLeadId)
                 HttpStatus.NOT_FOUND);
     }
 
+    List<BenchedEmployee> skillMatchedEmployees = benchedEmp.stream()
+            .filter(employee -> taskSkillList == null || taskSkillList.isEmpty()
+                    || getSkillMatch(employee.getSkillSet(), taskSkillList) > 0)
+            .collect(Collectors.toList());
+    if (skillMatchedEmployees.isEmpty()) {
+        return new ResponseEntity<>(
+                new TaskAssignResponse(new ArrayList<>(), "No available benched employee has a required skill for this task."),
+                HttpStatus.NOT_FOUND);
+    }
 
-    List<Integer> assignedEmployeeIds = findRelevantBenchedEmp(benchedEmp, taskSkillList, taskId, teamLeadId);
+    List<Integer> assignedEmployeeIds = findRelevantBenchedEmp(skillMatchedEmployees, taskSkillList, taskId, teamLeadId);
 
     if (assignedEmployeeIds.isEmpty()) {
 
@@ -132,11 +155,25 @@ public ResponseEntity<TaskAssignResponse> assignTask(int taskId, int teamLeadId)
             int skillMatchCount1 = getSkillMatch(bEmp1.getSkillSet(), taskSkillList);
             int skillMatchCount2 = getSkillMatch(bEmp2.getSkillSet(), taskSkillList);
 
+            boolean hasAllRequiredSkills1 = hasAllRequiredSkills(bEmp1.getSkillSet(), taskSkillList);
+            boolean hasAllRequiredSkills2 = hasAllRequiredSkills(bEmp2.getSkillSet(), taskSkillList);
+
+            // Prefer complete skill coverage, then the strongest partial match.
+            int fullCoverageComparison = Boolean.compare(hasAllRequiredSkills2, hasAllRequiredSkills1);
+            if (fullCoverageComparison != 0) {
+                return fullCoverageComparison;
+            }
+
+            int skillComparison = Integer.compare(skillMatchCount2, skillMatchCount1);
+            if (skillComparison != 0) {
+                return skillComparison;
+            }
+
             int durationComparison = Long.compare(duration2, duration1);
             if (durationComparison != 0) {
                 return durationComparison;
             }
-            return Integer.compare(skillMatchCount2, skillMatchCount1);
+            return Integer.compare(bEmp1.getEmployeeId(), bEmp2.getEmployeeId());
         };
 
         PriorityQueue<BenchedEmployee> queue = new PriorityQueue<>(comparator);
@@ -157,7 +194,7 @@ public ResponseEntity<TaskAssignResponse> assignTask(int taskId, int teamLeadId)
                 Task taskToUpdate = task;
                 taskToUpdate.setAssignedDate(LocalDateTime.now());
                 taskToUpdate.setAssignedTo(bestBenchedEmployee.getEmployeeId());
-                taskToUpdate.setStatus("In Progress");
+                taskToUpdate.setStatus(Status.IN_PROGRESS.name());
                 taskToUpdate.setAssignedBy(teamLeadId);
                 taskRepository.save(taskToUpdate);
             } else {
@@ -171,9 +208,27 @@ public ResponseEntity<TaskAssignResponse> assignTask(int taskId, int teamLeadId)
         if (skillSet == null || taskSkillList == null || skillSet.isEmpty() || taskSkillList.isEmpty()) {
             return 0;
         }
-        List<String> tempSkillSet = new ArrayList<>(skillSet);
-        tempSkillSet.retainAll(taskSkillList);
-        return tempSkillSet.size();
+        return (int) normalizeSkills(skillSet).stream()
+                .filter(normalizeSkills(taskSkillList)::contains)
+                .count();
+    }
+
+    private boolean hasAllRequiredSkills(List<String> employeeSkills, List<String> taskSkills) {
+        if (taskSkills == null || taskSkills.isEmpty()) {
+            return true;
+        }
+        return normalizeSkills(employeeSkills).containsAll(normalizeSkills(taskSkills));
+    }
+
+    private List<String> normalizeSkills(List<String> skills) {
+        if (skills == null) {
+            return List.of();
+        }
+        return skills.stream()
+                .filter(skill -> skill != null && !skill.isBlank())
+                .map(skill -> skill.trim().toLowerCase())
+                .distinct()
+                .toList();
     }
 
     public long calculateBenchedDuration(BenchedEmployee benchedEmployee) {

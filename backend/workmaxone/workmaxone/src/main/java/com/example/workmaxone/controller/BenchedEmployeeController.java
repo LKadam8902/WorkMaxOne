@@ -49,8 +49,9 @@ public class BenchedEmployeeController {
     }
 
     @PutMapping("/updateTask/{id}")
-    public ResponseEntity<TaskResponse>updateTask(@PathVariable("id") Integer taskId, @RequestBody TaskRequestBody requestBody){
-        taskService.updateTask(taskId,requestBody.stat().name());
+    public ResponseEntity<TaskResponse>updateTask(@AuthenticationPrincipal Jwt jwt, @PathVariable("id") Integer taskId, @RequestBody TaskRequestBody requestBody){
+        int benchEmployeeId = Integer.parseInt(jwt.getSubject());
+        taskService.updateTask(taskId, benchEmployeeId, requestBody.stat().name());
         return new ResponseEntity<>(new TaskResponse("Task successfulyy updated"), HttpStatus.OK);
     }
 

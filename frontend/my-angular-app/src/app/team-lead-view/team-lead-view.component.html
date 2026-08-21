@@ -1,312 +1,173 @@
-<div class="team-lead-dashboard">
-  <!-- Enhanced Sidebar -->
-  <div class="sidebar" [class.collapsed]="!showSidebar">    <div class="sidebar-header" [class.clickable]="!showSidebar">
-      <div 
-        class="dashboard-icon" 
-        [title]="showSidebar ? 'Dashboard' : 'Click to expand sidebar'"
-        (click)="!showSidebar && openSidebar()">📊</div>
-      <button 
-        *ngIf="showSidebar"
-        class="toggle-sidebar-btn" 
-        (click)="closeSidebar()" 
-        title="Close Sidebar">
-        ◀
-      </button>
+<div class="dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>WorkMax</h2>
+    <p class="project-name">{{ currentProject?.projectName }}</p>
+    
+    <!-- ANALYTICS -->
+    <div class="analytics">
+      <div class="stat">
+        <span class="stat-number">{{ todoTasks.length }}</span>
+        <span class="stat-label">Tasks Assigned</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ inProgressTasks.length }}</span>
+        <span class="stat-label">In Progress</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">{{ doneTasks.length }}</span>
+        <span class="stat-label">Completed</span>
+      </div>
     </div>
-      <!-- Tasks Section in Sidebar -->
-    <div class="sidebar-content" *ngIf="showSidebar">
-      <div class="sidebar-section">
-        <!-- All Tasks Button -->
-        <div class="sidebar-header-section">          <button class="all-tasks-btn" (click)="loadAllTasks()" [disabled]="isLoadingTasks">
-            <span class="btn-icon">📋</span>
-            <span class="btn-text">All Tasks</span>
-            <span class="task-count">({{ tasks.length }})</span>
-          </button><button class="refresh-tasks-btn" (click)="refreshTasksList()" [disabled]="isLoadingTasks" title="Refresh Tasks">
-            <span class="refresh-icon" [class.spinning]="isLoadingTasks">🔄</span>
-          </button>
-        </div>
-        
-        <!-- Loading indicator -->
-        <div *ngIf="isLoadingTasks" class="sidebar-loading">
-          <div class="loading-spinner"></div>
-          <span>Loading tasks...</span>
-        </div>
-          <!-- Tasks list -->
-        <div *ngIf="!isLoadingTasks && tasks.length > 0" class="tasks-list">
-          <div *ngFor="let task of tasks; trackBy: trackByTaskId" class="task-item">
-            <div class="task-info">
-              <h4 class="task-name">{{ task.name }}</h4>
-              <p class="task-skills">{{ getTaskSkills(task) }}</p>
-              <span class="task-status" [class]="'status-' + getTaskStatus(task)">
-                {{ getTaskStatusDisplay(task) }}
-              </span>
-            </div>
-            <button 
-              *ngIf="isTaskPending(task)" 
-              (click)="assignTask(getTaskId(task))" 
-              class="assign-task-btn"
-              title="Assign this task">
-              Assign
-            </button>
+
+    <!-- EMPLOYEES LIST -->
+    <div class="employees-section">
+      <h4>Team Members</h4>
+      <div class="employees-list">
+        <div *ngFor="let emp of employees" class="employee-item" (click)="viewEmployeeInfo(emp)">
+          <div class="employee-info">
+            <span class="employee-name">{{ emp.employeeName }}</span>
+            <span class="employee-id">#{{ emp.id }}</span>
           </div>
-        </div>        <!-- No tasks message -->
-        <div *ngIf="!isLoadingTasks && tasks.length === 0" class="no-tasks">
-          <div class="no-tasks-icon">📋</div>
-          <p class="no-tasks-title">No tasks available</p>
-          <small class="no-tasks-subtitle">Create your first task using the form above.</small>
-          <button class="retry-btn" (click)="retryLoadTasks()" style="margin-top: 10px; padding: 8px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
-            🔄 Retry Loading
-          </button>
+          <span class="employee-tasks-count">{{ getEmployeeTaskCount(emp.id) }}</span>
+          <span class="employee-arrow">→</span>
         </div>
       </div>
     </div>
-  </div>
-  <!-- Main content -->
-  <div class="main-content">
+  </aside>
 
-    <!-- Top bar -->
-    <div class="top-bar">
-      <img src="./logo11.png" alt="WorkMax Logo" class="logo-image" />
-      <div class="top-bar-actions">        <div class="profile-dropdown">
-          <div class="profile-trigger" (click)="toggleProfileDropdown()">
-            <img src="./icon.jpg" alt="Profile" class="profile-icon" />
-            <span class="profile-name" *ngIf="profileData">{{ profileData.employeeName || 'Team Lead' }}</span>
-            <span class="dropdown-arrow" [class.open]="showProfileDropdown">▼</span>
-          </div>          <!-- Simple, guaranteed visible dropdown -->
-          <div *ngIf="showProfileDropdown" 
-               style="position: absolute; top: 100%; right: 0; background: white; border: 2px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 250px;"
-               (click)="$event.stopPropagation()">
-            
-            <!-- Profile Header -->
-            <div style="padding: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px 6px 0 0;">
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="./icon.jpg" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);" />
-                <div>
-                  <h3 style="margin: 0; font-size: 16px;">{{ profileData?.employeeName || 'Team Lead' }}</h3>
-                  <p style="margin: 4px 0 0 0; font-size: 14px; opacity: 0.9;">{{ profileData?.email || 'No email' }}</p>
-                </div>
-              </div>
-            </div>
-              <!-- Divider -->
-            <div style="height: 1px; background: #e5e7eb;"></div>
-            
-            <!-- Buttons -->
-            <div style="padding: 8px;">
-              <button (click)="openEditProfile()" 
-                      style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border: none; background: none; color: #2563eb; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 6px; margin-bottom: 4px;"
-                      onmouseover="this.style.backgroundColor='#eff6ff'" 
-                      onmouseout="this.style.backgroundColor='transparent'">
-                <span>✏️</span>
-                Edit Profile
-              </button>
-              
-              <div style="height: 1px; background: #e5e7eb; margin: 4px 0;"></div>
-              
-              <button (click)="logout()" 
-                      style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border: none; background: none; color: #dc2626; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 6px;"
-                      onmouseover="this.style.backgroundColor='#fee2e2'" 
-                      onmouseout="this.style.backgroundColor='transparent'">
-                <span>🚪</span>
-                Logout
-              </button>
-            </div>
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <h3>Welcome, {{ profileData?.employeeName }}</h3>
+      <div class="topbar-right">
+        <div class="profile-box">
+          <div class="profile-picture" (click)="toggleProfileMenu()">
+            {{ getInitials(profileData?.employeeName) }}
+          </div>
+          <div *ngIf="showProfileMenu" class="profile-dropdown">
+            <button (click)="editProfile()">Edit Profile</button>
+            <button (click)="logoutUser()">Logout</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Messages -->
-    <div *ngIf="errorMessage" class="error-message">
-      {{ errorMessage }}
-      <button *ngIf="errorMessage.includes('session') || errorMessage.includes('log in')" 
-              (click)="redirectToLogin()" 
-              class="login-btn">
-        Go to Login
-      </button>
-    </div>    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
-    <div *ngIf="isLoading" class="loading-message">Loading...</div>
+    <section *ngIf="!hasProject" class="project-setup">
+      <span class="setup-eyebrow">Get started</span>
+      <h1>Create your first project</h1>
+      <p>Projects group your work. Once created, you can add tasks and assign them to the best available employee.</p>
+      <div class="project-form">
+        <input [(ngModel)]="projectName" (keyup.enter)="createProject()"
+               placeholder="e.g. Customer portal redesign" aria-label="Project name" />
+        <button (click)="createProject()" [disabled]="isSavingProject || !projectName.trim()">
+          {{ isSavingProject ? 'Creating…' : 'Create project' }}
+        </button>
+      </div>
+    </section>
 
-    <!-- Progress indicator -->
-    <div class="progress-steps">
-      <div class="step" [class.active]="currentStep === 'project'" [class.completed]="hasExistingProject">
-        <span class="step-number">1</span>
-        <span class="step-label">Create Project</span>
-      </div>
-      <div class="step" [class.active]="currentStep === 'task'" [class.completed]="currentStep === 'complete'">
-        <span class="step-number">2</span>
-        <span class="step-label">Add Task</span>
-      </div>
-      <div class="step" [class.active]="currentStep === 'complete'">
-        <span class="step-number">3</span>
-        <span class="step-label">Complete</span>
-      </div>
-    </div>
-
-    <!-- Step 1: Create Project -->
-    <div *ngIf="currentStep === 'project'" class="step-content">
-      <h2>Create Your Project</h2>
-      <p>Start by creating a new project. You can only create one project as a team lead.</p>
-      
-      <div class="form-group">
-        <label for="projectName">Project Name:</label>
-        <input 
-          id="projectName"
-          type="text" 
-          [(ngModel)]="projectName" 
-          placeholder="Enter project name"
-          [disabled]="isLoading"
-          class="form-input" />
-      </div>
-        <button 
-        (click)="onProjectSubmit()" 
-        [disabled]="isLoading || !projectName.trim()"
-        class="primary-btn">
-        {{ isLoading ? 'Creating...' : 'Create Project' }}
-      </button>
-      
-      <!-- Add task mode button if tasks exist -->
-      <button 
-        *ngIf="tasks.length > 0"
-        (click)="switchToTaskMode()" 
-        class="secondary-btn"
-        style="margin-left: 10px; background-color: #28a745; color: white;">
-        Switch to Add Tasks
+    <!-- CREATE TASK BAR -->
+    <div class="task-bar" *ngIf="hasProject">
+      <input [(ngModel)]="taskName" (keyup.enter)="createTask()" placeholder="Task name" aria-label="Task name" />
+      <input [(ngModel)]="skills" (keyup.enter)="createTask()" placeholder="Skills, comma-separated" aria-label="Required skills" />
+      <button (click)="createTask()" [disabled]="isSavingTask || !taskName.trim()">
+        {{ isSavingTask ? 'Adding…' : '+ Add task' }}
       </button>
     </div>
 
-    <!-- Step 2: Add Task -->
-    <div *ngIf="currentStep === 'task'" class="step-content">
-      <h2>Add a Task</h2>
-      <p *ngIf="!hasExistingProject">Great! Your project has been created. Now add your first task.</p>
-      <p *ngIf="hasExistingProject">Add a new task to your existing project.</p>
-      
-      <div class="form-group">
-        <label for="taskName">Task Name:</label>
-        <input 
-          id="taskName"
-          type="text" 
-          [(ngModel)]="taskName" 
-          placeholder="Enter task name"
-          [disabled]="isLoading"
-          class="form-input" />
-      </div>
-      
-      <div class="form-group">
-        <label for="skills">Required Skills:</label>
-        <input 
-          id="skills"
-          type="text" 
-          [(ngModel)]="skills" 
-          placeholder="Enter skills separated by commas (e.g., Java, Spring, Angular)"
-          [disabled]="isLoading"
-          class="form-input" />
-        <small class="form-help">Enter the skills required for this task, separated by commas</small>
-      </div>
-      
-      <button 
-        (click)="onTaskSubmit()" 
-        [disabled]="isLoading || !taskName.trim() || !skills.trim()"
-        class="primary-btn">
-        {{ isLoading ? 'Creating...' : 'Create Task' }}
-      </button>
-    </div>
+    <p *ngIf="actionMessage" class="action-message" [class.error]="actionIsError">{{ actionMessage }}</p>
 
-    <!-- Step 3: Complete -->
-    <div *ngIf="currentStep === 'complete'" class="step-content">
-      <h2>✅ Task Created Successfully!</h2>
-      <p>Your task has been created and is now available for assignment to team members.</p>
-      
-      <div class="completion-actions">
-        <button (click)="createAnotherTask()" class="primary-btn">
-          Add Another Task
-        </button>
-        <button (click)="redirectToLogin()" class="secondary-btn">          Back to Dashboard
-        </button>
-      </div>
-    </div>
-      <!-- Backend Issue Alert
-    <div style="background: #f8d7da; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #dc3545; color: #721c24;">
-      <strong>� Backend Issue Detected:</strong> 
-      <div style="margin-top: 8px;">
-        The backend <code>/teamLead/allTasks</code> endpoint is only returning <strong>1 task</strong> instead of all <strong>4 tasks</strong> from the database.
-      </div>
-      <div style="margin-top: 8px; font-size: 14px;">
-        <strong>Expected tasks:</strong> project ui (ID:1), project frontend (ID:2), project backend (ID:3), project readme (ID:4)<br>
-        <strong>Currently returned:</strong> Only project frontend (ID:2)
-      </div>
-      <div style="margin-top: 10px;">
-        <button (click)="analyzeBackendResponse()" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 3px; margin-right: 10px;">
-          🔍 Re-analyze Backend
-        </button>
-        <button (click)="loadAllTasks()" style="background: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 3px;">
-          🔄 Retry Load
-        </button>
-      </div>
-      <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
-        <strong>Backend Fix Needed:</strong> Check the Spring Boot controller/service for the <code>allTasks</code> endpoint and ensure it returns ALL tasks for the team lead, not just one.
-      </div>
-    </div> -->
-  </div>
+    <!-- BOARD -->
+    <div class="board">
 
-  <!-- Edit Profile Modal -->
-  <div class="modal-overlay" *ngIf="showEditProfileModal" (click)="closeEditProfile()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Edit Profile</h2>
-        <button class="close-btn" (click)="closeEditProfile()">×</button>
-      </div>
-      
-      <form (ngSubmit)="updateProfile()" class="edit-profile-form">
-        <div class="form-group">
-          <label for="editName">Full Name</label>
-          <input 
-            type="text" 
-            id="editName" 
-            [(ngModel)]="editProfileData.employeeName" 
-            name="editName" 
-            class="form-input"
-            placeholder="Enter your full name"
-            required>
-        </div>
-        
-        <div class="form-group">
-          <label for="editEmail">Email</label>
-          <input 
-            type="email" 
-            id="editEmail" 
-            [(ngModel)]="editProfileData.email" 
-            name="editEmail" 
-            class="form-input"
-            placeholder="Enter your email"
-            required>
-        </div>
-        
-        <div class="form-group">
-          <label for="editPassword">New Password (optional)</label>
-          <input 
-            type="password" 
-            id="editPassword" 
-            [(ngModel)]="editProfileData.password" 
-            name="editPassword" 
-            class="form-input"
-            placeholder="Leave blank to keep current password">
-        </div>
-        
-        <div *ngIf="profileUpdateError" class="error-message">
-          {{ profileUpdateError }}
-        </div>
-        
-        <div *ngIf="profileUpdateSuccess" class="success-message">
-          {{ profileUpdateSuccess }}
-        </div>
-        
-        <div class="modal-actions">
-          <button type="button" class="cancel-btn" (click)="closeEditProfile()">Cancel</button>
-          <button type="submit" class="save-btn" [disabled]="isUpdatingProfile">
-            {{ isUpdatingProfile ? 'Updating...' : 'Save Changes' }}
+      <!-- TODO -->
+      <div class="column"
+           (drop)="onDrop('TO_DO')"
+           (dragover)="allowDrop($event)">
+        <h3>TO DO</h3>
+
+        <div *ngFor="let t of todoTasks"
+             class="card"
+             draggable="true"
+             (dragstart)="onDragStart(t)">
+          <div class="card-header">
+            <p class="task-title">{{ t.name }}</p>
+            <p class="task-assigned-header" *ngIf="t.assignedTo">
+              <span class="emp-name">{{ getEmployeeName(t.assignedTo) }}</span>
+              <span class="emp-id">#{{ t.assignedTo }}</span>
+            </p>
+          </div>
+          <p class="task-assigned" *ngIf="!t.assignedTo">
+            Unassigned
+          </p>
+          <button (click)="assignTask(t.id)" class="assign-btn" [disabled]="assigningTaskId === t.id">
+            {{ assigningTaskId === t.id ? 'Finding match…' : 'Auto-assign best match' }}
           </button>
         </div>
-      </form>
+      </div>
+
+      <!-- IN PROGRESS -->
+      <div class="column"
+           (drop)="onDrop('IN_PROGRESS')"
+           (dragover)="allowDrop($event)">
+        <h3>IN PROGRESS</h3>
+
+        <div *ngFor="let t of inProgressTasks"
+             class="card"
+             draggable="true"
+             (dragstart)="onDragStart(t)">
+          <div class="card-header">
+            <p class="task-title">{{ t.name }}</p>
+            <p class="task-assigned-header" *ngIf="t.assignedTo">
+              <span class="emp-name">{{ getEmployeeName(t.assignedTo) }}</span>
+              <span class="emp-id">#{{ t.assignedTo }}</span>
+            </p>
+          </div>
+          <p class="task-assigned" *ngIf="!t.assignedTo">
+            Unassigned
+          </p>
+        </div>
+      </div>
+
+      <!-- DONE -->
+      <div class="column"
+           (drop)="onDrop('DONE')"
+           (dragover)="allowDrop($event)">
+        <h3>DONE</h3>
+
+        <div *ngFor="let t of doneTasks"
+             class="card done"
+             draggable="true"
+             (dragstart)="onDragStart(t)">
+          <div class="card-header">
+            <p class="task-title">{{ t.name }}</p>
+            <p class="task-assigned-header" *ngIf="t.assignedTo">
+              <span class="emp-name">{{ getEmployeeName(t.assignedTo) }}</span>
+              <span class="emp-id">#{{ t.assignedTo }}</span>
+            </p>
+          </div>
+          <p class="task-assigned" *ngIf="!t.assignedTo">
+            Unassigned
+          </p>
+        </div>
+      </div>
+
     </div>
+
+  </div>
+</div>
+
+<!-- EMPLOYEE INFO MODAL -->
+<div *ngIf="showEmployeeModal" class="modal-overlay" (click)="closeEmployeeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeEmployeeModal()">×</button>
+    <h2>{{ selectedEmployeeInfo?.employeeName }}</h2>
+    <p><strong>ID:</strong> {{ selectedEmployeeInfo?.id }}</p>
+    <p><strong>Email:</strong> {{ selectedEmployeeInfo?.email }}</p>
+    <p><strong>Skills:</strong> {{ selectedEmployeeInfo?.skills }}</p>
+    <p><strong>Assigned Tasks:</strong> {{ selectedEmployeeInfo?.assignedTasksCount }}</p>
   </div>
 </div>

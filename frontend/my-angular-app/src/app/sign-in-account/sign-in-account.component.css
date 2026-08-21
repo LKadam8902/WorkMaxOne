@@ -1,111 +1,187 @@
-.gradient-custom-2 {
-  background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
-  border-top-right-radius: .3rem;
-  border-bottom-right-radius: .3rem;
-}
-
-.gradient-form {
-  height: 100vh !important;
-  overflow: hidden;
-}
-
-.container {
-  max-width: 100%;
-  padding: 0 !important;
-  height: 100vh;
-}
-
-.card {
-  height: 100vh;
-  border-radius: 0 !important;
-}
-
-.row {
-  height: 100vh;
-  margin: 0;
-}
-
-.col-lg-6 {
-  padding: 0;
-}
-
-.card-body {
+/* =========================
+   Wrapper
+========================= */
+.login-wrapper {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  height: 100vh;
-  padding: 1rem 2rem !important;
+  background: linear-gradient(to bottom, #f8fafc, #eef2ff);
+  font-family: 'Inter', sans-serif;
+  padding: 20px;
 }
 
-form {
-  max-height: 100%;
-  overflow-y: auto;
+/* =========================
+   Card Layout
+========================= */
+.login-card {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  background: #ffffff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 991.98px) {
-  .card-body {
-    padding: 1rem !important;
-  }
-  
-  .col-lg-6:first-child {
-    order: 1;
-  }
-  
-  .col-lg-6:last-child {
-    order: 2;
-    min-height: 40vh;
-  }
+/* =========================
+   Left (Form)
+========================= */
+.login-left {
+  flex: 1;
+  padding: 40px;
 }
 
-@media (max-width: 575.98px) {
-  .card-body {
-    padding: 0.75rem !important;
-  }
+.logo-container {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.btn.gradient-custom-2 {
-  background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
-  color: white;
-  border: none;
+.logo-container img {
+  width: 70px;
 }
 
-.btn.gradient-custom-2:hover {
-  opacity: 0.9;
-}
-
-.alert-info {
-  background-color: #cce5ff;
-  border: 1px solid #b8daff;
-  color: #004085;
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 10px;
-  font-size: 14px;
+.login-form h2 {
+  font-size: 22px;
+  font-weight: 600;
   text-align: center;
 }
 
-.form-check {
-  margin-bottom: 0.5rem;
+.subtitle {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 20px;
 }
 
-.form-check-input {
-  margin-right: 0.5rem;
+/* =========================
+   Form
+========================= */
+.form-group {
+  margin-bottom: 16px;
 }
 
-.form-check-label {
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #1e3a8a;
+}
+
+/* Radio */
+.radio-group {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.radio-group label {
+  font-size: 14px;
+  color: #374151;
+}
+
+/* =========================
+   Button
+========================= */
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #172554;
+}
+
+/* =========================
+   Text Links
+========================= */
+.forgot {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #1e3a8a;
+  text-align: center;
+  cursor: pointer;
+}
+
+.signup {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.signup button {
+  background: none;
+  border: none;
+  color: #1e3a8a;
   font-weight: 500;
-  color: #333;
+  cursor: pointer;
 }
 
-.form-check-input:checked {
-  background-color: #ee7724;
-  border-color: #ee7724;
-}
-
+/* =========================
+   Messages
+========================= */
 .error-message {
-  color: #dc3545;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-  display: block;
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.info-box {
+  margin-top: 10px;
+  padding: 10px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 13px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* =========================
+   Right Panel
+========================= */
+.login-right {
+  flex: 1;
+  background: #1e3a8a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.right-content {
+  max-width: 300px;
+  text-align: center;
+}
+
+.right-content h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.right-content p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 768px) {
+  .login-card {
+    flex-direction: column;
+  }
+
+  .login-right {
+    padding: 30px;
+  }
 }

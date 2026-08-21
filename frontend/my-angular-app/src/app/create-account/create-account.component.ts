@@ -12,6 +12,7 @@ import { UserService } from '../services/user.service';
   imports: [CommonModule, FormsModule]
 })
 export class CreateAccountComponent {
+
   userData = {
     username: '',
     email: '',
@@ -19,6 +20,7 @@ export class CreateAccountComponent {
     password: '',
     confirmPassword: ''
   };
+
   errorMessage: string = '';
   successMessage: string = '';
 
@@ -27,22 +29,33 @@ export class CreateAccountComponent {
     private router: Router
   ) {}
 
+  // ✅ FIXED: Navigation method
+  navigateToLogin() {
+    this.router.navigate(['/sign-in']);
+  }
+
   onSubmit() {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    // Password validation
     if (this.userData.password !== this.userData.confirmPassword) {
       this.errorMessage = 'Passwords do not match';
       return;
     }
 
     this.userService.createAccount(this.userData).subscribe({
-      next: (response) => {
+      next: () => {
         this.successMessage = 'Account created successfully! Waiting for admin approval.';
+
         setTimeout(() => {
           this.router.navigate(['/sign-in']);
         }, 2000);
       },
       error: (error) => {
-        this.errorMessage = error.error.message || 'Failed to create account. Please try again.';
+        this.errorMessage =
+          error?.error?.message || 'Failed to create account. Please try again.';
       }
     });
   }
-} 
+}

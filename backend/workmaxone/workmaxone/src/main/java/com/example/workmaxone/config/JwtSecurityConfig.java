@@ -54,8 +54,8 @@ public class JwtSecurityConfig {
         System.out.println("hello from filterchain");
         http.authorizeHttpRequests((authorize) -> authorize
                 .requestMatchers("/admin/getAdminDetails","/admin/view/**").hasRole("ADMIN")
-                .requestMatchers("/benchEmployee").hasRole("BENCHED_EMPLOYEE")
-                .requestMatchers("/teamLead").hasRole("TEAM_LEAD")
+                .requestMatchers("/benchEmployee/**").hasRole("BENCHED_EMPLOYEE")
+                .requestMatchers("/teamLead/**").hasRole("TEAM_LEAD")
                 .requestMatchers("/**").authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
@@ -109,6 +109,9 @@ public class JwtSecurityConfig {
         config.addAllowedOrigin("http://localhost:4200");
         config.addAllowedOrigin("http://127.0.0.1:4200");
         config.setAllowedMethods(List.of("GET", "PUT", "POST", "OPTIONS", "DELETE"));
+        config.addAllowedHeader("Authorization");
+        config.addAllowedHeader("Content-Type");
+        config.setAllowCredentials(true);
         config.addExposedHeader("Token-Status");
         var src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", config);

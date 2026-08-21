@@ -42,15 +42,16 @@ public class ProjectService {
        try {
            Project project = new Project();
            project.setProjectName(projectName);
-           Optional<TeamLead> teamLead=teamLeadRepository.findById(teamLeadId);
-           if (teamLead.get()==null){
-               throw new ProjectException("enable to find team lead :"+teamLeadId);
-           }else {
-               project.setManager(teamLead.get());
-          }
+           Optional<TeamLead> teamLead = teamLeadRepository.findById(teamLeadId);
+           if (teamLead.isEmpty()) {
+               throw new ProjectException("Unable to find team lead: " + teamLeadId);
+           }
+           project.setManager(teamLead.get());
            projectRepository.save(project);
            teamLead.get().setProject(project);
            teamLeadRepository.save(teamLead.get());
+       } catch (ProjectException e) {
+           throw e;
        }catch(Exception e){
            throw new ProjectException("Enable to add project due to this error :"+e.getMessage());
        }

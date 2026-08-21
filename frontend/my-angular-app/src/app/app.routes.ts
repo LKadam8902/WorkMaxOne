@@ -7,6 +7,7 @@ import { AdminViewComponent } from './admin-view/admin-view.component';
 import { TeamLeadViewComponent } from './team-lead-view/team-lead-view.component';
 import { BenchedEmployeeViewComponent } from './benched-employee-view/benched-employee-view.component';
 import { Contact } from './contact/contact';
+import { EditProfileComponent } from './edit-profile/edit-profile.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -16,5 +17,6 @@ export const routes: Routes = [
   { path: 'admin-view', component: AdminViewComponent },
   { path: 'team-lead-view', component: TeamLeadViewComponent },
   { path: 'benched-employee-view', component: BenchedEmployeeViewComponent },
+  { path: 'edit-profile', component: EditProfileComponent },
   { path: 'contact', component: Contact }
 ];

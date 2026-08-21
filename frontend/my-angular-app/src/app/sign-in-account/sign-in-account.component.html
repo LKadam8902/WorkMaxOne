@@ -1,89 +1,91 @@
-<section class="h-100 gradient-form">
-  <div class="container h-100">
-    <div class="row d-flex justify-content-center align-items-center h-100">
-      <div class="col-xl-10">
-        <div class="card rounded-3 text-black">
-          <div class="row g-0">            <div class="col-lg-6">
-              <div class="card-body p-3">                <div class="text-center mb-3">
-                  <img src="./logo11.png" style="width: 80px;" alt="WorkMax Logo" />
-                </div>
+<section class="login-wrapper">
 
-                <form (ngSubmit)="onSubmit()">
-                  <p class="mb-3">Please login to your account</p>                  <div class="form-outline mb-3">
-                    <p class="mb-2"><strong>Select your role:</strong></p>
-                    <div class="form-check">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        name="userRole" 
-                        id="teamLead" 
-                        value="TEAM_LEAD"
-                        [(ngModel)]="selectedRole"
-                        required>
-                      <label class="form-check-label" for="teamLead">
-                        Team Lead
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input 
-                        class="form-check-input" 
-                        type="radio" 
-                        name="userRole" 
-                        id="benchedEmployee" 
-                        value="BENCHED_EMPLOYEE"
-                        [(ngModel)]="selectedRole"
-                        required>
-                      <label class="form-check-label" for="benchedEmployee">
-                        Benched Employee
-                      </label>
-                    </div>                  </div>
+  <div class="login-card">
 
-                  <div class="form-outline mb-3">
-                    <input 
-                      type="email" 
-                      class="form-control" 
-                      placeholder="Email" 
-                      [(ngModel)]="email"
-                      name="email"
-                      required />
-                  </div>                  <div class="form-outline mb-3">
-                    <input 
-                      type="password" 
-                      class="form-control" 
-                      placeholder="Password" 
-                      [(ngModel)]="password"
-                      name="password"
-                      required />
-                  </div>                  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <!-- LEFT: FORM -->
+    <div class="login-left">
 
-                  <div class="text-center pt-1 mb-3">
-                    <button type="submit" class="btn btn-primary btn-block gradient-custom-2 mb-2">
-                      Log in
-                    </button>
-                    <br>
-                    <a class="text-muted" href="#" (click)="handleForgotPassword(); $event.preventDefault()">Forgot password?</a>                    <div *ngIf="showForgotPasswordMessage" class="alert alert-info mt-2">
-                      Please contact your administrator to reset your password.
-                    </div>
-                  </div>
+      <div class="logo-container">
+        <img src="./logo11.png" alt="WorkMax Logo" />
+      </div>
 
-                  <div class="d-flex align-items-center justify-content-center">
-                    <p class="mb-0 me-2">Don't have an account?</p>
-                    <button type="button" class="btn btn-outline-danger" (click)="navigateToCreateAccount()">Create new</button>
-                  </div>
-                </form>
+      <form (ngSubmit)="onSubmit()" class="login-form">
 
-              </div>
-            </div>            <div class="col-lg-6 d-flex align-items-center gradient-custom-2">
-              <div class="text-white px-3 py-3">
-                <h4 class="mb-3">We are more than just a company</h4>
-                <p class="small mb-0">
-                  At WorkMax, we strive to blend productivity with innovation, making your work smoother and smarter.
-                </p>
-              </div>
-            </div>
+        <h2>Sign in to WorkMax</h2>
+        <p class="subtitle">Enter your details to continue</p>
+
+        <!-- Role Selection -->
+        <div class="form-group">
+          <label>Select Role</label>
+
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="userRole" value="TEAM_LEAD"
+                [(ngModel)]="selectedRole" required />
+              Team Lead
+            </label>
+
+            <label>
+              <input type="radio" name="userRole" value="BENCHED_EMPLOYEE"
+                [(ngModel)]="selectedRole" required />
+              Benched Employee
+            </label>
           </div>
         </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <input type="email" placeholder="Email"
+            [(ngModel)]="email" name="email" required />
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <input type="password" placeholder="Password"
+            [(ngModel)]="password" name="password" required />
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Button -->
+        <button type="submit" class="primary-btn">
+          Log in
+        </button>
+
+        <!-- Forgot -->
+        <p class="forgot" (click)="handleForgotPassword()">
+          Forgot password?
+        </p>
+
+        <div *ngIf="showForgotPasswordMessage" class="info-box">
+          Please contact your administrator to reset your password.
+        </div>
+
+        <!-- Create -->
+        <div class="signup">
+          <span>Don’t have an account?</span>
+          <button type="button" (click)="navigateToCreateAccount()">
+            Create account
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- RIGHT: INFO PANEL -->
+    <div class="login-right">
+      <div class="right-content">
+        <h3>Smarter Workforce Management</h3>
+        <p>
+          Optimize talent allocation, improve productivity,
+          and deliver projects efficiently with WorkMax.
+        </p>
       </div>
     </div>
+
   </div>
+
 </section>

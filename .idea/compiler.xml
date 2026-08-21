@@ -4,10 +4,6 @@
     <bytecodeTargetLevel target="24" />
   </component>
   <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="workmaxone" options="-parameters" />
-      <module name="workmaxone.main" options="-parameters" />
-      <module name="workmaxone.test" options="-parameters" />
-    </option>
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-parameters" />
   </component>
 </project>
